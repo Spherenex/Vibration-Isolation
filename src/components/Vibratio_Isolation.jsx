@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   BarChart, LineChart, XAxis, YAxis, Tooltip, Legend,
-  Bar, Line, CartesianGrid, ResponsiveContainer
+  Bar, Line, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
 import Papa from 'papaparse';
 
@@ -69,118 +69,295 @@ const Dashboard = () => {
   const numericalColumns = headers.filter(header => typeof data[0][header] === 'number');
   const categoryColumn = headers.find(header => !numericalColumns.includes(header)) || headers[0];
 
-  // Calculate S1 - S2 difference for latest entry only
+  // Calculate S1 - S2 difference for latest entry and its occurrence count
   let latestDifference = null;
-  let latestFrequency = null;
+  let occurrenceCount = null;
+  let occurrencePercentage = null;
   
   if (latestEntry && typeof latestEntry.S1 === 'number' && typeof latestEntry.S2 === 'number') {
-    latestDifference = latestEntry.S1 - latestEntry.S2;
+    // Round to 2 decimal places
+    latestDifference = parseFloat((latestEntry.S1 - latestEntry.S2).toFixed(2));
     
-    // Calculate frequency count for this specific difference value across all data
-    let frequencyCount = 0;
+    // Calculate occurrence count for this specific difference value across all data
+    let count = 0;
     data.forEach(row => {
       if (typeof row.S1 === 'number' && typeof row.S2 === 'number') {
-        const diff = row.S1 - row.S2;
+        const diff = parseFloat((row.S1 - row.S2).toFixed(2));
         if (diff === latestDifference) {
-          frequencyCount++;
+          count++;
         }
       }
     });
-    latestFrequency = frequencyCount;
+    occurrenceCount = count;
+    occurrencePercentage = ((count / data.length) * 100).toFixed(1);
   }
+
+  // Calculate complete occurrence distribution for chart
+  let occurrenceMap = {};
+  if (headers.includes("S1") && headers.includes("S2")) {
+    data.forEach(row => {
+      if (typeof row.S1 === 'number' && typeof row.S2 === 'number') {
+        const diff = parseFloat((row.S1 - row.S2).toFixed(2));
+        occurrenceMap[diff] = (occurrenceMap[diff] || 0) + 1;
+      }
+    });
+  }
+
+  const occurrenceChartData = Object.entries(occurrenceMap)
+    .map(([diff, count]) => ({
+      difference: `${diff}`,
+      count,
+      percentage: ((count / data.length) * 100).toFixed(1)
+    }))
+    .sort((a, b) => Number(a.difference) - Number(b.difference));
+
+  const COLORS = ['#00C9FF', '#92FE9D', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
 
   return (
     <div className="dashboard">
-      <h1>Google Sheets Dashboard</h1>
+      <div className="header-section">
+        <div className="header-content">
+          <h1 className="main-title">
+            <span className="title-icon">🧠</span>
+            ML Analytics Dashboard
+          </h1>
+          <div className="status-indicator">
+            <div className="status-dot"></div>
+            <span>Live Data Stream</span>
+          </div>
+        </div>
+      </div>
 
-      <div className="tabs">
-        <button
-          className={activeTab === 'latest' ? 'active' : ''}
-          onClick={() => setActiveTab('latest')}
-        >
-          Latest Data
-        </button>
-        {numericalColumns.length > 0 && (
+      <div className="tabs-container">
+        <div className="tabs">
           <button
-            className={activeTab === 'charts' ? 'active' : ''}
-            onClick={() => setActiveTab('charts')}
+            className={activeTab === 'latest' ? 'active' : ''}
+            onClick={() => setActiveTab('latest')}
           >
-            Charts
+            <span className="tab-icon">📊</span>
+            Real-time Analysis
           </button>
-        )}
+          {numericalColumns.length > 0 && (
+            <button
+              className={activeTab === 'charts' ? 'active' : ''}
+              onClick={() => setActiveTab('charts')}
+            >
+              <span className="tab-icon">📈</span>
+              Data Visualization
+            </button>
+          )}
+        </div>
       </div>
 
       {activeTab === 'latest' && (
         <div className="latest-data-container">
-          <h2>Latest Data Entry</h2>
-          <div className="latest-data-card">
-            <div className="latest-card-header">
-              <h3>Latest Update</h3>
-              <span className="timestamp">
-                Last updated: {lastUpdated.toLocaleTimeString()}
-                <span className="pulse-dot"></span>
-              </span>
-            </div>
-            <div className="latest-card-content">
-              {headers.map(header => (
-                <div className="latest-data-item" key={header}>
-                  <div className="item-label">{header}</div>
-                  <div className="item-value">
-                    {typeof latestEntry[header] === 'number'
-                      ? latestEntry[header].toLocaleString()
-                      : latestEntry[header]}
-                  </div>
-                </div>
-              ))}
+          <div className="section-header">
+            <h2>Latest Data Stream</h2>
+            <div className="update-timestamp">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+              <div className="pulse-indicator"></div>
             </div>
           </div>
 
-          {/* Display S1 - S2 Difference and Frequency for Latest Entry */}
-          {latestDifference !== null && latestFrequency !== null && (
-            <div className="frequency-section">
-              <h2>Latest S1 - S2 Analysis</h2>
-              <div className="frequency-display">
-                <div className="frequency-row">
-                  <div className="frequency-card difference-card">
-                    <div className="card-header">Difference</div>
-                    <div className="card-value">{latestDifference}</div>
-                    <div className="card-unit">units</div>
-                    <div className="card-calculation">
-                      S1 ({latestEntry.S1}) - S2 ({latestEntry.S2})
+          <div className="data-grid">
+            <div className="latest-data-card">
+              <div className="card-header">
+                <h3>Current Data Point</h3>
+                <div className="header-accent"></div>
+              </div>
+              <div className="card-content">
+                {headers.map(header => (
+                  <div className="data-item" key={header}>
+                    <div className="item-label">{header}</div>
+                    <div className="item-value">
+                      {typeof latestEntry[header] === 'number'
+                        ? latestEntry[header].toLocaleString()
+                        : latestEntry[header]}
                     </div>
+                    <div className="item-indicator"></div>
                   </div>
-                  
-                  <div className="frequency-card frequency-main">
-                    <div className="card-header">Frequency</div>
-                    <div className="card-value">{latestFrequency}</div>
-                    <div className="card-unit">Hz</div>
-                    <div className="card-calculation">
-                      Occurrences of difference "{latestDifference}"
-                    </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ML-Style Analysis Section */}
+          {latestDifference !== null && occurrenceCount !== null && (
+            <div className="ml-analysis-section">
+              <div className="section-header">
+                <h2>🤖 ML Pattern Analysis</h2>
+              </div>
+              
+              <div className="analysis-grid">
+                <div className="metric-card difference-metric">
+                  <div className="metric-header">
+                    <div className="metric-icon">⚡</div>
+                    <div className="metric-title">Signal Difference</div>
+                  </div>
+                  <div className="metric-value">{latestDifference}</div>
+                  <div className="metric-unit">units</div>
+                  <div className="metric-formula">
+                    S1({latestEntry.S1}) - S2({latestEntry.S2})
+                  </div>
+                  <div className="metric-trend">
+                    <div className="trend-line"></div>
                   </div>
                 </div>
                 
-                <div className="frequency-details">
-                  <div className="detail-item">
-                    <span className="detail-label">Latest Difference Value:</span>
-                    <span className="detail-value">{latestDifference} units</span>
+                <div className="metric-card occurrence-metric">
+                  <div className="metric-header">
+                    <div className="metric-icon">🔢</div>
+                    <div className="metric-title">Pattern Occurrences</div>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Frequency of this difference:</span>
-                    <span className="detail-value">{latestFrequency} Hz</span>
+                  <div className="metric-value">{occurrenceCount}</div>
+                  <div className="metric-unit">times</div>
+                  <div className="metric-formula">
+                    {occurrencePercentage}% of dataset
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Total dataset entries:</span>
-                    <span className="detail-value">{data.length}</span>
+                  <div className="metric-trend">
+                    <div className="trend-line occurrence-trend"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Occurrence Distribution Graph */}
+              {occurrenceChartData.length > 0 && (
+                <div className="chart-section">
+                  <div className="chart-header">
+                    <h3>📊 Pattern Occurrence Distribution</h3>
+                    <div className="chart-subtitle">How often each difference pattern appears in the dataset</div>
+                  </div>
+                  
+                  <div className="charts-row">
+                    <div className="chart-container">
+                      <h4>Bar Chart Distribution</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={occurrenceChartData}>
+                          <defs>
+                            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#00C9FF" />
+                              <stop offset="100%" stopColor="#92FE9D" />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                          <XAxis 
+                            dataKey="difference" 
+                            stroke="#888"
+                            fontSize={12}
+                            axisLine={{stroke: '#888'}}
+                            label={{ value: 'Signal Difference (units)', position: 'insideBottom', offset: -5, fill: '#888' }}
+                          />
+                          <YAxis 
+                            stroke="#888"
+                            fontSize={12}
+                            axisLine={{stroke: '#888'}}
+                            label={{ value: 'Occurrences', angle: -90, position: 'insideLeft', fill: '#888' }}
+                          />
+                          <Tooltip 
+                            contentStyle={{
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #333',
+                              borderRadius: '8px',
+                              color: '#fff'
+                            }}
+                            formatter={(value, name) => [value, 'Occurrences']}
+                            labelFormatter={(label) => `Difference: ${label} units`}
+                          />
+                          <Bar 
+                            dataKey="count" 
+                            fill="url(#barGradient)"
+                            radius={[4, 4, 0, 0]}
+                            stroke="#00C9FF"
+                            strokeWidth={1}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="chart-container">
+                      <h4>Distribution Overview</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={occurrenceChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={120}
+                            dataKey="count"
+                            stroke="#1a1a1a"
+                            strokeWidth={2}
+                            label={({ difference, percentage }) => `${difference}: ${percentage}%`}
+                          >
+                            {occurrenceChartData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #333',
+                              borderRadius: '8px',
+                              color: '#fff'
+                            }}
+                            formatter={(value, name, props) => [
+                              `${value} occurrences (${props.payload.percentage}%)`, 
+                              `Difference: ${props.payload.difference}`
+                            ]}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Analysis Details */}
+              <div className="analysis-details">
+                <div className="details-header">
+                  <h4>🔬 Statistical Analysis</h4>
+                </div>
+                <div className="details-grid">
+                  <div className="detail-card">
+                    <div className="detail-label">Current Pattern</div>
+                    <div className="detail-value">{latestDifference} units</div>
+                  </div>
+                  <div className="detail-card">
+                    <div className="detail-label">Pattern Occurrences</div>
+                    <div className="detail-value">{occurrenceCount} times</div>
+                  </div>
+                  <div className="detail-card">
+                    <div className="detail-label">Pattern Prevalence</div>
+                    <div className="detail-value">{occurrencePercentage}%</div>
+                  </div>
+                  <div className="detail-card">
+                    <div className="detail-label">Dataset Size</div>
+                    <div className="detail-value">{data.length} samples</div>
+                  </div>
+                  <div className="detail-card">
+                    <div className="detail-label">Unique Patterns</div>
+                    <div className="detail-value">{occurrenceChartData.length}</div>
+                  </div>
+                  <div className="detail-card">
+                    <div className="detail-label">Most Common Pattern</div>
+                    <div className="detail-value">
+                      {occurrenceChartData.length > 0 
+                        ? `${occurrenceChartData.reduce((max, item) => 
+                            item.count > max.count ? item : max
+                          ).difference} units`
+                        : 'N/A'
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="auto-refresh-status">
-            <div className="refresh-status">
-              Auto-refreshing every second
+          <div className="auto-refresh-section">
+            <div className="refresh-indicator">
+              <div className="refresh-dot"></div>
+              <span>Auto-refreshing every second</span>
             </div>
           </div>
         </div>
@@ -190,7 +367,7 @@ const Dashboard = () => {
         <div className="charts-container">
           <div className="chart-controls">
             <div className="control-group">
-              <label htmlFor="chart-type">Chart Type:</label>
+              <label htmlFor="chart-type">Visualization Type:</label>
               <select
                 id="chart-type"
                 value={chartType}
@@ -202,7 +379,7 @@ const Dashboard = () => {
             </div>
 
             <div className="control-group">
-              <label htmlFor="chart-column">Data Column:</label>
+              <label htmlFor="chart-column">Data Feature:</label>
               <select
                 id="chart-column"
                 value={chartColumn}
@@ -216,48 +393,79 @@ const Dashboard = () => {
           </div>
 
           <div className="chart-box">
-            <h2>{chartType === 'bar' ? 'Bar' : 'Line'} Chart: {chartColumn}</h2>
+            <h2>📈 {chartType === 'bar' ? 'Bar' : 'Line'} Analysis: {chartColumn}</h2>
             <ResponsiveContainer width="100%" height={400}>
               {chartType === 'bar' ? (
                 <BarChart data={data.slice(0, 20)}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey={categoryColumn} />
-                  <YAxis />
-                  <Tooltip />
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00C9FF" />
+                      <stop offset="100%" stopColor="#92FE9D" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                  <XAxis dataKey={categoryColumn} stroke="#888" />
+                  <YAxis stroke="#888" />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                      color: '#fff'
+                    }}
+                  />
                   <Legend />
-                  <Bar dataKey={chartColumn} fill="#3498db" />
+                  <Bar dataKey={chartColumn} fill="url(#chartGradient)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               ) : (
                 <LineChart data={data.slice(0, 20)}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey={categoryColumn} />
-                  <YAxis />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                  <XAxis dataKey={categoryColumn} stroke="#888" />
+                  <YAxis stroke="#888" />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                      color: '#fff'
+                    }}
+                  />
                   <Legend />
-                  <Line type="monotone" dataKey={chartColumn} stroke="#3498db" />
+                  <Line 
+                    type="monotone" 
+                    dataKey={chartColumn} 
+                    stroke="#00C9FF" 
+                    strokeWidth={3}
+                    dot={{ fill: '#00C9FF', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: '#00C9FF', strokeWidth: 2, fill: '#92FE9D' }}
+                  />
                 </LineChart>
               )}
             </ResponsiveContainer>
           </div>
 
           <div className="data-summary">
-            <h2>Data Summary for {chartColumn}</h2>
-            <div className="summary-stats">
-              <div className="stat-box">
-                <h3>Minimum</h3>
-                <p>{Math.min(...data.map(item => item[chartColumn]))}</p>
+            <h2>📊 Statistical Summary: {chartColumn}</h2>
+            <div className="summary-grid">
+              <div className="stat-card">
+                <div className="stat-icon">📉</div>
+                <div className="stat-label">Minimum</div>
+                <div className="stat-value">{Math.min(...data.map(item => item[chartColumn]))}</div>
               </div>
-              <div className="stat-box">
-                <h3>Maximum</h3>
-                <p>{Math.max(...data.map(item => item[chartColumn]))}</p>
+              <div className="stat-card">
+                <div className="stat-icon">📈</div>
+                <div className="stat-label">Maximum</div>
+                <div className="stat-value">{Math.max(...data.map(item => item[chartColumn]))}</div>
               </div>
-              <div className="stat-box">
-                <h3>Average</h3>
-                <p>{(data.reduce((sum, item) => sum + item[chartColumn], 0) / data.length).toFixed(2)}</p>
+              <div className="stat-card">
+                <div className="stat-icon">📊</div>
+                <div className="stat-label">Average</div>
+                <div className="stat-value">{(data.reduce((sum, item) => sum + item[chartColumn], 0) / data.length).toFixed(2)}</div>
               </div>
-              <div className="stat-box">
-                <h3>Total</h3>
-                <p>{data.reduce((sum, item) => sum + item[chartColumn], 0).toFixed(2)}</p>
+              <div className="stat-card">
+                <div className="stat-icon">∑</div>
+                <div className="stat-label">Total</div>
+                <div className="stat-value">{data.reduce((sum, item) => sum + item[chartColumn], 0).toFixed(2)}</div>
               </div>
             </div>
           </div>
@@ -272,90 +480,488 @@ const Dashboard = () => {
         }
         
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background-color: #f5f7fa;
-          color: #333;
+          font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+          background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+          color: #ffffff;
           line-height: 1.6;
+          min-height: 100vh;
         }
         
         .dashboard {
-          max-width: 1200px;
+          max-width: 1700px;
           margin: 0 auto;
           padding: 20px;
+          min-height: 100vh;
         }
         
-        h1 {
-          color: #2c3e50;
-          margin-bottom: 20px;
-          text-align: center;
-          font-size: 28px;
+        /* Header Styles */
+        .header-section {
+          margin-bottom: 30px;
         }
         
-        h2 {
-          color: #34495e;
-          margin: 15px 0;
-          font-size: 20px;
+        .header-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 0;
         }
         
-        h3 {
-          font-size: 16px;
-          margin-bottom: 5px;
-          color: #7f8c8d;
+        .main-title {
+          font-size: 32px;
+          font-weight: 700;
+          background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          display: flex;
+          align-items: center;
+          gap: 15px;
         }
         
-        .loading, .error, .empty {
-          text-align: center;
-          padding: 50px;
-          font-size: 18px;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .title-icon {
+          font-size: 36px;
         }
         
-        .error {
-          color: #e74c3c;
+        .status-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(0, 201, 255, 0.1);
+          border: 1px solid rgba(0, 201, 255, 0.3);
+          border-radius: 20px;
+          font-size: 14px;
+        }
+        
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          background: #00C9FF;
+          border-radius: 50%;
+          animation: pulse 2s infinite;
+        }
+        
+        /* Tabs */
+        .tabs-container {
+          margin-bottom: 30px;
         }
         
         .tabs {
           display: flex;
           justify-content: center;
-          margin-bottom: 20px;
+          gap: 5px;
+          background: rgba(255, 255, 255, 0.05);
+          padding: 5px;
+          border-radius: 12px;
+          backdrop-filter: blur(10px);
         }
         
         .tabs button {
-          background-color: #f8f9fa;
-          border: 1px solid #ddd;
-          padding: 10px 20px;
-          margin: 0 5px;
+          background: transparent;
+          border: none;
+          padding: 12px 24px;
+          margin: 0;
           cursor: pointer;
-          border-radius: 5px;
+          border-radius: 8px;
           transition: all 0.3s ease;
           font-size: 16px;
+          color: #888;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
         
         .tabs button.active {
-          background-color: #3498db;
-          color: white;
-          border-color: #3498db;
+          background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%);
+          color: #000;
+          box-shadow: 0 4px 15px rgba(0, 201, 255, 0.4);
         }
         
         .tabs button:hover:not(.active) {
-          background-color: #e9ecef;
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
         }
         
+        .tab-icon {
+          font-size: 18px;
+        }
+        
+        /* Loading, Error, Empty States */
+        .loading, .error, .empty {
+          text-align: center;
+          padding: 60px;
+          font-size: 18px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .error {
+          color: #ff6b6b;
+          border-color: rgba(255, 107, 107, 0.3);
+        }
+        
+        /* Latest Data Container */
+        .latest-data-container {
+          display: flex;
+          flex-direction: column;
+          gap: 30px;
+        }
+        
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+          font-size: 24px;
+          font-weight: 600;
+          color: #fff;
+        }
+        
+        .update-timestamp {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          color: #888;
+        }
+        
+        .pulse-indicator {
+          width: 8px;
+          height: 8px;
+          background: #2ecc71;
+          border-radius: 50%;
+          animation: pulse 1s infinite;
+        }
+        
+        /* Data Grid */
+        .data-grid {
+          display: grid;
+          gap: 20px;
+        }
+        
+        .latest-data-card {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          overflow: hidden;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: transform 0.3s ease;
+        }
+        
+        .latest-data-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-header {
+          background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%);
+          color: #000;
+          padding: 20px;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .card-header h3 {
+          font-size: 20px;
+          font-weight: 600;
+        }
+        
+        .header-accent {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 100px;
+          height: 100px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 50%;
+          transform: translate(30px, -30px);
+        }
+        
+        .card-content {
+          padding: 20px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
+        }
+        
+        .data-item {
+          display: flex;
+          flex-direction: column;
+          padding: 15px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px;
+          border-left: 3px solid #00C9FF;
+          position: relative;
+          transition: all 0.3s ease;
+        }
+        
+        .data-item:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-left-color: #92FE9D;
+        }
+        
+        .item-label {
+          font-size: 12px;
+          color: #888;
+          text-transform: uppercase;
+          font-weight: 600;
+          margin-bottom: 5px;
+        }
+        
+        .item-value {
+          font-size: 20px;
+          font-weight: 600;
+          color: #fff;
+        }
+        
+        .item-indicator {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 6px;
+          height: 6px;
+          background: #00C9FF;
+          border-radius: 50%;
+          animation: pulse 2s infinite;
+        }
+        
+        /* ML Analysis Section */
+        .ml-analysis-section {
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 20px;
+          padding: 30px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .analysis-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          margin-bottom: 40px;
+        }
+        
+        .metric-card {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          padding: 25px;
+          position: relative;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .difference-metric {
+          background: linear-gradient(135deg, rgba(0, 201, 255, 0.1) 0%, rgba(146, 254, 157, 0.1) 100%);
+        }
+        
+        .occurrence-metric {
+          background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.1) 100%);
+        }
+        
+        .metric-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 15px;
+        }
+        
+        .metric-icon {
+          font-size: 24px;
+        }
+        
+        .metric-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #888;
+        }
+        
+        .metric-value {
+          font-size: 48px;
+          font-weight: 700;
+          color: #fff;
+          margin-bottom: 5px;
+          text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .metric-unit {
+          font-size: 18px;
+          font-weight: 600;
+          color: #00C9FF;
+          margin-bottom: 10px;
+        }
+        
+        .occurrence-metric .metric-unit {
+          color: #FFC107;
+        }
+        
+        .metric-formula {
+          font-size: 14px;
+          color: #888;
+          margin-bottom: 15px;
+        }
+        
+        .metric-trend {
+          height: 4px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 2px;
+          overflow: hidden;
+        }
+        
+        .trend-line {
+          height: 100%;
+          width: 70%;
+          background: linear-gradient(90deg, #00C9FF, #92FE9D);
+          border-radius: 2px;
+          animation: pulse 2s infinite;
+        }
+        
+        .occurrence-trend {
+          background: linear-gradient(90deg, #FFC107, #FF9800);
+        }
+        
+        /* Chart Section */
+        .chart-section {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          padding: 25px;
+          margin-bottom: 30px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-header {
+          margin-bottom: 20px;
+        }
+        
+        .chart-header h3 {
+          font-size: 20px;
+          font-weight: 600;
+          color: #fff;
+          margin-bottom: 5px;
+        }
+        
+        .chart-subtitle {
+          font-size: 14px;
+          color: #888;
+        }
+        
+        .charts-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 25px;
+        }
+        
+        .chart-container {
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 12px;
+          padding: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-container h4 {
+          font-size: 16px;
+          font-weight: 600;
+          color: #fff;
+          margin-bottom: 15px;
+          text-align: center;
+        }
+        
+        /* Analysis Details */
+        .analysis-details {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .details-header h4 {
+          font-size: 18px;
+          font-weight: 600;
+          color: #fff;
+          margin-bottom: 15px;
+        }
+        
+        .details-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 15px;
+        }
+        
+        .detail-card {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 8px;
+          padding: 15px;
+          text-align: center;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s ease;
+        }
+        
+        .detail-card:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: #00C9FF;
+        }
+        
+        .detail-label {
+          font-size: 12px;
+          color: #888;
+          text-transform: uppercase;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        
+        .detail-value {
+          font-size: 18px;
+          font-weight: 600;
+          color: #fff;
+        }
+        
+        /* Auto Refresh */
+        .auto-refresh-section {
+          text-align: center;
+        }
+        
+        .refresh-indicator {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px;
+          background: rgba(46, 204, 113, 0.1);
+          border: 1px solid rgba(46, 204, 113, 0.3);
+          border-radius: 20px;
+          font-size: 14px;
+          color: #2ecc71;
+        }
+        
+        .refresh-dot {
+          width: 8px;
+          height: 8px;
+          background: #2ecc71;
+          border-radius: 50%;
+          animation: pulse 1s infinite;
+        }
+        
+        /* Charts Container */
         .charts-container {
           display: flex;
           flex-direction: column;
-          gap: 20px;
-          margin-top: 20px;
+          gap: 30px;
         }
         
         .chart-controls {
           display: flex;
           justify-content: center;
-          gap: 20px;
-          margin-bottom: 10px;
+          gap: 30px;
           flex-wrap: wrap;
+          margin-bottom: 20px;
         }
         
         .control-group {
@@ -364,311 +970,136 @@ const Dashboard = () => {
           gap: 10px;
         }
         
-        label {
+        .control-group label {
           font-weight: 600;
+          color: #888;
         }
         
-        select {
+        .control-group select {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: #fff;
           padding: 8px 12px;
-          border-radius: 4px;
-          border: 1px solid #ddd;
-          background-color: white;
+          border-radius: 6px;
           font-size: 14px;
         }
         
         .chart-box {
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          border-radius: 8px;
-          padding: 20px;
-          background-color: white;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          padding: 25px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-box h2 {
+          font-size: 20px;
+          font-weight: 600;
+          color: #fff;
+          margin-bottom: 20px;
         }
         
         .data-summary {
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          border-radius: 8px;
-          padding: 20px;
-          background-color: white;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          padding: 25px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .summary-stats {
-          display: flex;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 15px;
-        }
-        
-        .stat-box {
-          flex: 1;
-          min-width: 120px;
-          padding: 15px;
-          background-color: #f8f9fa;
-          border-radius: 8px;
-          text-align: center;
-          border-left: 4px solid #3498db;
-        }
-        
-        .stat-box p {
-          font-size: 18px;
+        .data-summary h2 {
+          font-size: 20px;
           font-weight: 600;
-          color: #2c3e50;
+          color: #fff;
+          margin-bottom: 20px;
         }
         
-        /* Latest Data View Styles */
-        .latest-data-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 20px 0;
+        .summary-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
         }
         
-        .latest-data-card {
-          width: 100%;
-          max-width: 800px;
-          background-color: white;
-          border-radius: 10px;
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-          margin: 20px 0;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .latest-data-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
-        }
-        
-        .latest-card-header {
-          background-color: #3498db;
-          color: white;
+        .stat-card {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
           padding: 20px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+          text-align: center;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s ease;
         }
         
-        .latest-card-header h3 {
-          margin: 0;
-          font-size: 22px;
-          color: white;
+        .stat-card:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: translateY(-2px);
         }
         
-        .timestamp {
+        .stat-icon {
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        
+        .stat-label {
           font-size: 14px;
-          opacity: 0.9;
-          display: flex;
-          align-items: center;
-          gap: 6px;
+          color: #888;
+          font-weight: 600;
+          margin-bottom: 8px;
         }
         
-        .pulse-dot {
-          width: 8px;
-          height: 8px;
-          background-color: #2ecc71;
-          border-radius: 50%;
-          display: inline-block;
-          animation: pulse 1s infinite;
+        .stat-value {
+          font-size: 24px;
+          font-weight: 700;
+          color: #fff;
         }
         
+        /* Animations */
         @keyframes pulse {
           0% {
-            transform: scale(0.95);
-            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
-          }
-          
-          70% {
+            opacity: 1;
             transform: scale(1);
-            box-shadow: 0 0 0 5px rgba(46, 204, 113, 0);
           }
-          
+          50% {
+            opacity: 0.7;
+            transform: scale(1.1);
+          }
           100% {
-            transform: scale(0.95);
-            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+            opacity: 1;
+            transform: scale(1);
           }
         }
         
-        .latest-card-content {
-          padding: 20px;
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 20px;
-        }
-        
-        .latest-data-item {
-          display: flex;
-          flex-direction: column;
-          padding: 10px;
-          border-radius: 6px;
-          background-color: #f8f9fa;
-          transition: background-color 0.2s ease;
-        }
-        
-        .latest-data-item:hover {
-          background-color: #e9ecef;
-        }
-        
-        .item-label {
-          font-weight: 600;
-          color: #7f8c8d;
-          margin-bottom: 5px;
-          font-size: 14px;
-          text-transform: uppercase;
-        }
-        
-        .item-value {
-          color: #2c3e50;
-          font-weight: 500;
-          font-size: 18px;
-        }
-        
-        /* Frequency Section Styles */
-        .frequency-section {
-          width: 100%;
-          max-width: 800px;
-          background-color: white;
-          border-radius: 10px;
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-          padding: 25px;
-          margin: 20px 0;
-        }
-        
-        .frequency-display {
-          margin-top: 20px;
-        }
-        
-        .frequency-row {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 25px;
-        }
-        
-        .frequency-card {
-          flex: 1;
-          text-align: center;
-          padding: 25px;
-          border-radius: 12px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-          transition: transform 0.3s ease;
-        }
-        
-        .frequency-card:hover {
-          transform: translateY(-3px);
-        }
-        
-        .difference-card {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-        }
-        
-        .frequency-main {
-          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          color: white;
-        }
-        
-        .card-header {
-          font-size: 16px;
-          font-weight: 600;
-          margin-bottom: 10px;
-          opacity: 0.9;
-          background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .card-value {
-          font-size: 42px;
-          font-weight: bold;
-          margin-bottom: 5px;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .card-unit {
-          font-size: 18px;
-          font-weight: 600;
-          margin-bottom: 10px;
-          opacity: 0.8;
-        }
-        
-        .card-calculation {
-          font-size: 14px;
-          opacity: 0.8;
-          line-height: 1.4;
-        }
-        
-        .frequency-details {
-          background-color: #f8f9fa;
-          border-radius: 8px;
-          padding: 20px;
-        }
-        
-        .detail-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-          padding: 8px 0;
-          border-bottom: 1px solid #e9ecef;
-        }
-        
-        .detail-item:last-child {
-          border-bottom: none;
-          margin-bottom: 0;
-        }
-        
-        .detail-label {
-          font-weight: 600;
-          color: #7f8c8d;
-        }
-        
-        .detail-value {
-          font-weight: 600;
-          color: #2c3e50;
-          font-size: 16px;
-        }
-        
-        .auto-refresh-status {
-          margin-top: 20px;
-          text-align: center;
-        }
-        
-        .refresh-status {
-          display: inline-block;
-          color: #2ecc71;
-          font-weight: 600;
-          background-color: rgba(46, 204, 113, 0.1);
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 14px;
-        }
-        
+        /* Responsive Design */
         @media (max-width: 768px) {
           .dashboard {
-            padding: 10px;
+            padding: 15px;
           }
           
-          .tabs button {
-            padding: 8px 12px;
-            font-size: 14px;
+          .main-title {
+            font-size: 24px;
           }
           
-          .summary-stats {
-            flex-direction: column;
-          }
-          
-          .stat-box {
-            width: 100%;
-          }
-          
-          .frequency-row {
+          .header-content {
             flex-direction: column;
             gap: 15px;
           }
           
-          .card-value {
-            font-size: 36px;
+          .tabs {
+            flex-direction: column;
           }
           
-          .detail-item {
+          .charts-row {
+            grid-template-columns: 1fr;
+          }
+          
+          .analysis-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .chart-controls {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 5px;
+            align-items: center;
+          }
+          
+          .metric-value {
+            font-size: 36px;
           }
         }
       `}</style>
