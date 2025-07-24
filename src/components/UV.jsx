@@ -41,7 +41,75 @@ function App() {
     uvIntensityValues: []
   });
 
+  // State for alert functionality
+  const [alert, setAlert] = useState({
+    show: false,
+    message: '',
+    type: '',
+    timestamp: null
+  });
+
+  // Request notification permission
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      console.log('Current notification permission:', Notification.permission);
+      
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        console.log('Permission granted:', permission === 'granted');
+        return permission === 'granted';
+      }
+      return Notification.permission === 'granted';
+    }
+    console.log('Notifications not supported in this browser');
+    return false;
+  };
+
+  // Play alert sound
+  const playAlertSound = () => {
+    try {
+      // Create a simple beep sound using Web Audio API
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 1);
+    } catch (error) {
+      console.log('Could not play alert sound:', error);
+    }
+  };
+
+  // Show browser notification
+  const showNotification = (uvValue, uvState) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('🚨 UV Index Alert', {
+        body: `UV Index is ${uvValue} (${uvState}). Take protective measures!`,
+        icon: '/favicon.ico',
+        tag: 'uv-alert',
+        requireInteraction: true
+      });
+    }
+  };
+
+  // Debug alert state changes
   useEffect(() => {
+    console.log('Alert state changed:', alert);
+  }, [alert]);
+
+  useEffect(() => {
+    // Request notification permission on component mount
+    requestNotificationPermission();
+
     // Firebase configuration
     const firebaseConfig = {
       databaseURL: "https://self-balancing-7a9fe-default-rtdb.firebaseio.com/"
@@ -56,8 +124,14 @@ function App() {
 
     // Listen for changes in the data
     const unsubscribe = onValue(uvDataRef, (snapshot) => {
+      console.log('Firebase data received:', snapshot.exists());
+      
       if (snapshot.exists()) {
         const data = snapshot.val();
+        console.log('Complete data:', data);
+        console.log('UV Index data:', data.UV_Index);
+        console.log('UV Index value:', data.UV_Index?.value);
+        console.log('Should show alert (UV > 4):', data.UV_Index?.value > 4);
         
         // Update current data
         setUvData({
@@ -66,6 +140,34 @@ function App() {
           loading: false,
           error: null
         });
+        
+        // Check for UV Index alert (threshold: 4)
+        if (data.UV_Index && data.UV_Index.value > 4) {
+          const currentTime = new Date().toLocaleTimeString();
+          const alertMessage = `⚠️ High UV Alert! UV Index is ${data.UV_Index.value} (${data.UV_Index.state})`;
+          
+          console.log('Setting alert to show');
+          setAlert({
+            show: true,
+            message: alertMessage,
+            type: 'warning',
+            timestamp: currentTime
+          });
+          
+          // Play alert sound
+          playAlertSound();
+          
+          // Show browser notification
+          showNotification(data.UV_Index.value, data.UV_Index.state);
+        } else {
+          console.log('Clearing alert (UV Index safe)');
+          setAlert({
+            show: false,
+            message: '',
+            type: '',
+            timestamp: null
+          });
+        }
         
         // Update historical data (keeping last 20 data points)
         const currentTime = new Date().toLocaleTimeString();
@@ -86,6 +188,7 @@ function App() {
           };
         });
       } else {
+        console.log('No Firebase data available');
         setUvData({
           uvIndex: null,
           uvIntensity: null,
@@ -94,6 +197,7 @@ function App() {
         });
       }
     }, (error) => {
+      console.error('Firebase error:', error);
       setUvData({
         uvIndex: null,
         uvIntensity: null,
@@ -104,7 +208,7 @@ function App() {
 
     // Clean up the listener
     return () => unsubscribe();
-  }, []);
+  }, []); // CRITICAL FIX: Empty dependency array
 
   // Helper function to determine the color based on UV state
   const getStateColor = (state) => {
@@ -124,135 +228,143 @@ function App() {
     }
   };
 
-  // Chart data and options
-// Add this code to your App.js to make the chart match the dark theme
-// Replace your existing chartOptions with this updated version
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    y: {
-      type: 'linear',
-      display: true,
-      position: 'left',
-      title: {
+  // Chart options with dark theme
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        type: 'linear',
         display: true,
-        text: 'UV Index',
-        color: 'rgba(255, 255, 255, 0.7)'
+        position: 'left',
+        title: {
+          display: true,
+          text: 'UV Index',
+          color: 'rgba(255, 255, 255, 0.7)'
+        },
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(255, 255, 255, 0.1)'
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.7)'
+        }
       },
-      grid: {
-        color: 'rgba(255, 255, 255, 0.1)',
-        borderColor: 'rgba(255, 255, 255, 0.1)'
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: {
+          display: true,
+          text: 'UV Intensity (mW/cm²)',
+          color: 'rgba(255, 255, 255, 0.7)'
+        },
+        grid: {
+          drawOnChartArea: false,
+          color: 'rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(255, 255, 255, 0.1)'
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.7)'
+        }
       },
-      ticks: {
-        color: 'rgba(255, 255, 255, 0.7)'
+      x: {
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(255, 255, 255, 0.1)'
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.7)'
+        }
       }
     },
-    y1: {
-      type: 'linear',
-      display: true,
-      position: 'right',
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: 'rgba(255, 255, 255, 0.9)',
+          font: {
+            weight: 'bold'
+          },
+          usePointStyle: true,
+          pointStyle: 'circle'
+        }
+      },
       title: {
         display: true,
-        text: 'UV Intensity (mW/cm²)',
-        color: 'rgba(255, 255, 255, 0.7)'
-      },
-      grid: {
-        drawOnChartArea: false,
-        color: 'rgba(255, 255, 255, 0.1)',
-        borderColor: 'rgba(255, 255, 255, 0.1)'
-      },
-      ticks: {
-        color: 'rgba(255, 255, 255, 0.7)'
-      }
-    },
-    x: {
-      grid: {
-        color: 'rgba(255, 255, 255, 0.1)',
-        borderColor: 'rgba(255, 255, 255, 0.1)'
-      },
-      ticks: {
-        color: 'rgba(255, 255, 255, 0.7)'
-      }
-    }
-  },
-  plugins: {
-    legend: {
-      position: 'top',
-      labels: {
+        text: 'UV Data Over Time',
         color: 'rgba(255, 255, 255, 0.9)',
         font: {
+          size: 16,
           weight: 'bold'
-        },
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        titleColor: 'rgba(255, 255, 255, 0.9)',
+        bodyColor: 'rgba(255, 255, 255, 0.9)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        padding: 10,
+        boxPadding: 5,
         usePointStyle: true,
-        pointStyle: 'circle'
+        cornerRadius: 8
       }
     },
-    title: {
-      display: true,
-      text: 'UV Data Over Time',
-      color: 'rgba(255, 255, 255, 0.9)',
-      font: {
-        size: 16,
-        weight: 'bold'
+    animation: {
+      duration: 750
+    },
+    elements: {
+      line: {
+        tension: 0.4
+      },
+      point: {
+        radius: 4,
+        hoverRadius: 6,
+        borderWidth: 2
       }
-    },
-    tooltip: {
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      titleColor: 'rgba(255, 255, 255, 0.9)',
-      bodyColor: 'rgba(255, 255, 255, 0.9)',
-      borderColor: 'rgba(255, 255, 255, 0.1)',
-      borderWidth: 1,
-      padding: 10,
-      boxPadding: 5,
-      usePointStyle: true,
-      cornerRadius: 8
     }
-  },
-  animation: {
-    duration: 750
-  },
-  elements: {
-    line: {
-      tension: 0.4
-    },
-    point: {
-      radius: 4,
-      hoverRadius: 6,
-      borderWidth: 2
-    }
-  }
-};
+  };
 
-// Also update your chartData to use more vibrant colors
-const chartData = {
-  labels: historicalData.timestamps,
-  datasets: [
-    {
-      label: 'UV Index',
-      data: historicalData.uvIndexValues,
-      borderColor: '#4f46e5',
-      backgroundColor: 'rgba(79, 70, 229, 0.2)',
-      borderWidth: 2,
-      pointRadius: 3,
-      tension: 0.4,
-      yAxisID: 'y',
-      fill: true
-    },
-    {
-      label: 'UV Intensity (mW/cm²)',
-      data: historicalData.uvIntensityValues,
-      borderColor: '#8b5cf6',
-      backgroundColor: 'rgba(139, 92, 246, 0.2)',
-      borderWidth: 2,
-      pointRadius: 3,
-      tension: 0.4,
-      yAxisID: 'y1',
-      fill: true
-    }
-  ]
-};
+  // Chart data with vibrant colors
+  const chartData = {
+    labels: historicalData.timestamps,
+    datasets: [
+      {
+        label: 'UV Index',
+        data: historicalData.uvIndexValues,
+        borderColor: '#4f46e5',
+        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.4,
+        yAxisID: 'y',
+        fill: true
+      },
+      {
+        label: 'UV Intensity (mW/cm²)',
+        data: historicalData.uvIntensityValues,
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.4,
+        yAxisID: 'y1',
+        fill: true
+      }
+    ]
+  };
+
+  // Dismiss alert function
+  const dismissAlert = () => {
+    console.log('Alert dismissed by user');
+    setAlert({
+      show: false,
+      message: '',
+      type: '',
+      timestamp: null
+    });
+  };
 
   if (uvData.loading) {
     return <div className="loading">Loading UV data...</div>;
@@ -265,6 +377,33 @@ const chartData = {
   return (
     <div className="dashboard">
       <h1>UV Intensity Monitoring</h1>
+      
+      {/* Debug Info - Remove after testing */}
+      <div className="debug-info">
+        <strong>Alert</strong> 
+      </div>
+      
+      {/* Alert Banner */}
+      {alert.show && (
+        <div className="alert-banner">
+          <div className="alert-content">
+            <div className="alert-icon">🚨</div>
+            <div className="alert-text">
+              <span className="alert-message">{alert.message}</span>
+              <div className="alert-subtext">
+                Take protective measures: wear sunscreen, sunglasses, and protective clothing!
+              </div>
+            </div>
+            <button 
+              className="alert-close" 
+              onClick={dismissAlert}
+              title="Dismiss alert"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       
       <div className="dashboard-container">
         {uvData.uvIndex && (
@@ -280,6 +419,9 @@ const chartData = {
               <span className="value">{uvData.uvIndex.value}</span>
             </div>
             <div className="level">{uvData.uvIndex.level}</div>
+            {uvData.uvIndex.value > 4 && (
+              <div className="warning-badge">⚠️ High UV Alert!</div>
+            )}
           </div>
         )}
 

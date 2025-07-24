@@ -17,6 +17,7 @@ import Home from './components/Home-gas-moisture'
 import Waste_detection from './components/Waste_Detection'
 import UV from './components/UV'
 import Vibration_Isolation from './components/Vibratio_Isolation'
+import Vibratio_Isolation11 from './components/Vibratio_Isolation11'
 function App() {
   const [count, setCount] = useState(0)
 
@@ -39,6 +40,7 @@ function App() {
       {/* <Waste_detection /> */}
       {/* <UV/> */}
       <Vibration_Isolation />
+      {/* <Vibratio_Isolation11 /> */}
     </>
   )
 }
