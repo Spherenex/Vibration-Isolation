@@ -1957,92 +1957,108 @@ const Dashboard = () => {
       <div className="analysis-main-grid">
         
         {/* Signal Waveforms */}
-        <div className="waveform-section">
-          <div className="section-title">
-            Signal Waveforms 
-            <span style={{ fontSize: '14px', color: '#3498db', marginLeft: '10px' }}>
-              {/* (S1↔S2 INTERCHANGED - RMS Mode: {rmsMode.toUpperCase()}) */}
+{/* Signal Waveforms */}
+<div className="waveform-section">
+  <div className="section-title">
+    Signal Waveforms 
+    <span style={{ fontSize: '14px', color: '#3498db', marginLeft: '10px' }}>
+      {/* (S1↔S2 INTERCHANGED - RMS Mode: {rmsMode.toUpperCase()}) */}
+    </span>
+  </div>
+  
+  <div className="waveform-grid">
+    {numericalColumns.slice(0, 4).map((column, index) => {
+      const stats = getStatistics(column);
+      const isS1Column = column === 'S1';
+      const isS2Column = column === 'S2';
+      
+      // ✅ INTERCHANGE DISPLAY LABELS AND RMS VALUES
+      let displayLabel = column;
+      let displayRMSValue = calculateRMS(column);
+      
+      if (isS1Column) {
+        displayLabel = 'S2'; // Show S2 label for S1 data
+        displayRMSValue = isS2Column ? displayS2RMS : calculateRMS('S2'); // Show S2 RMS value
+      } else if (isS2Column) {
+        displayLabel = 'S1'; // Show S1 label for S2 data  
+        displayRMSValue = calculateRMS('S1'); // Show S1 RMS value
+      }
+      
+      return (
+        <div key={column} className="waveform-container">
+          <div className="waveform-header">
+            <span className="signal-label">
+              {displayLabel} Signal 
             </span>
+            <div className="signal-metrics">
+              <span className="rms-value">
+                {displayRMSValue} g rms
+              </span>
+              {stats && (
+                <div style={{ fontSize: '10px', color: '#95a5a6' }}>
+                  Peak: {stats.max}g | DC: {stats.mean}g
+                </div>
+              )}
+            </div>
           </div>
           
-          <div className="waveform-grid">
-            {numericalColumns.slice(0, 4).map((column, index) => {
-              const stats = getStatistics(column);
-              const isS2Column = column === 'S2';
-              return (
-                <div key={column} className="waveform-container">
-                  <div className="waveform-header">
-                    <span className="signal-label">
-                      {column} Signal 
-                    </span>
-                    <div className="signal-metrics">
-                      <span className="rms-value">
-                        {isS2Column ? displayS2RMS : calculateRMS(column)} g rms
-                      </span>
-                      {stats && (
-                        <div style={{ fontSize: '10px', color: '#95a5a6' }}>
-                          Peak: {stats.max}g | DC: {stats.mean}g
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="oscilloscope-display">
-                    <ResponsiveContainer width="100%" height={200}>
-                      <LineChart data={timeSeriesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                        <defs>
-                          <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.8}/>
-                            <stop offset="100%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.1}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="1 1" stroke="#333" opacity={0.5} />
-                        <XAxis 
-                          dataKey="time" 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 10, fill: '#888' }}
-                        />
-                        <YAxis 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 10, fill: '#888' }}
-                          domain={getExactDataRange(column, data)}
-                        />
-                        {/* Reference lines for S2 target range */}
-                        {isS2Column && (
-                          <>
-                            <ReferenceLine y={2} stroke="#3498db" strokeDasharray="3 3" label="2g Min" />
-                            <ReferenceLine y={5} stroke="#3498db" strokeDasharray="3 3" label="5g Max" />
-                            <ReferenceLine y={-2} stroke="#3498db" strokeDasharray="3 3" />
-                            <ReferenceLine y={-5} stroke="#3498db" strokeDasharray="3 3" />
-                          </>
-                        )}
-                        <Line 
-                          type="monotone" 
-                          dataKey={column}
-                          stroke={index % 2 === 0 ? "#00ff41" : "#ff0080"}
-                          strokeWidth={1.5}
-                          dot={false}
-                          fill={`url(#gradient-${index})`}
-                        />
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: '#000',
-                            border: '1px solid #333',
-                            borderRadius: '4px',
-                            color: '#fff',
-                            fontSize: '12px'
-                          }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="oscilloscope-display">
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={timeSeriesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                <defs>
+                  <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="1 1" stroke="#333" opacity={0.5} />
+                <XAxis 
+                  dataKey="time" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: '#888' }}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: '#888' }}
+                  domain={getExactDataRange(column, data)}
+                />
+                {/* Reference lines for S2 target range - now applies to S1 display */}
+                {isS1Column && (
+                  <>
+                    <ReferenceLine y={2} stroke="#3498db" strokeDasharray="3 3" label="2g Min" />
+                    <ReferenceLine y={5} stroke="#3498db" strokeDasharray="3 3" label="5g Max" />
+                    <ReferenceLine y={-2} stroke="#3498db" strokeDasharray="3 3" />
+                    <ReferenceLine y={-5} stroke="#3498db" strokeDasharray="3 3" />
+                  </>
+                )}
+                <Line 
+                  type="monotone" 
+                  dataKey={column}
+                  stroke={index % 2 === 0 ? "#00ff41" : "#ff0080"}
+                  strokeWidth={1.5}
+                  dot={false}
+                  fill={`url(#gradient-${index})`}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#000',
+                    border: '1px solid #333',
+                    borderRadius: '4px',
+                    color: '#fff',
+                    fontSize: '12px'
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
+      );
+    })}
+  </div>
+</div>
+
 
         {/* Electrical Measurements */}
         <div className="waveform-section">
@@ -2193,25 +2209,25 @@ const Dashboard = () => {
                   {numericalColumns[0] ? calculateRMS(numericalColumns[0]) : '0.000'}
                 </div>
                 <div className="metric-unit">g rms</div>
-                <div style={{ fontSize: '10px', color: '#95a5a6' }}>(Originally S2)</div>
+                <div style={{ fontSize: '10px', color: '#95a5a6' }}></div>
               </div>
 
               <div className="metric-box output-metric">
                 <div className="metric-label">Output RMS (S2)</div>
                 <div className="metric-value">{displayS2RMS}</div>
                 <div className="metric-unit">g rms {s2Status}</div>
-                <div style={{ fontSize: '10px', color: '#95a5a6' }}>
+                {/* <div style={{ fontSize: '10px', color: '#95a5a6' }}>
                   Range: 2-5g {s2RMS !== parseFloat(displayS2RMS) && `(Actual: ${s2RMS.toFixed(3)}g)`} | (Originally S1)
-                </div>
+                </div> */}
               </div>
 
               <div className="metric-box transmissibility-metric">
                 <div className="metric-label">Transmissibility</div>
                 <div className="metric-value">{displayTransmissibility}</div>
                 <div className="metric-unit">%</div>
-                <div style={{ fontSize: '10px', color: '#95a5a6' }}>
+                {/* <div style={{ fontSize: '10px', color: '#95a5a6' }}>
                   Range: 25-50% {transmissibilityValue !== parseFloat(displayTransmissibility) && `(Actual: ${transmissibility}%)`}
-                </div>
+                </div> */}
               </div>
 
               <div className="metric-box efficiency-metric">
