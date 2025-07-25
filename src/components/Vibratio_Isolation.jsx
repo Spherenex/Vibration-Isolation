@@ -15,7 +15,7 @@
 //   const [chartColumn, setChartColumn] = useState(null);
 //   const [latestEntry, setLatestEntry] = useState(null);
 //   const [lastUpdated, setLastUpdated] = useState(new Date());
-  
+
 //   // New state variables for electrical data
 //   const [electricalData, setElectricalData] = useState([]);
 //   const [latestElectricalEntry, setLatestElectricalEntry] = useState(null);
@@ -90,7 +90,7 @@
 
 //   const headers = Object.keys(data[0]);
 //   const numericalColumns = headers.filter(header => typeof data[0][header] === 'number');
-  
+
 //   // Get electrical data headers
 //   const electricalHeaders = electricalData.length > 0 ? Object.keys(electricalData[0]) : [];
 //   const electricalNumericalColumns = electricalHeaders.filter(header => 
@@ -102,27 +102,27 @@
 //     const values = dataset
 //       .map(item => item[column])
 //       .filter(val => typeof val === 'number' && !isNaN(val));
-    
+
 //     if (values.length === 0) return ['auto', 'auto'];
-    
+
 //     const min = Math.min(...values);
 //     const max = Math.max(...values);
-    
+
 //     // If min and max are the same, add small range
 //     if (min === max) {
 //       return [min - 0.1, max + 0.1];
 //     }
-    
+
 //     return [min, max];
 //   };
 
 //   // Calculate S1 - S2 difference for latest entry (preserved functionality)
 //   let latestDifference = null;
 //   let latestFrequency = null;
-  
+
 //   if (latestEntry && typeof latestEntry.S1 === 'number' && typeof latestEntry.S2 === 'number') {
 //     latestDifference = parseFloat((latestEntry.S1 - latestEntry.S2).toFixed(2));
-    
+
 //     let frequencyCount = 0;
 //     data.forEach(row => {
 //       if (typeof row.S1 === 'number' && typeof row.S2 === 'number') {
@@ -205,11 +205,11 @@
 
 //       {/* Main Analysis Grid */}
 //       <div className="analysis-main-grid">
-        
+
 //         {/* Signal Waveforms - Top Row with Exact Y-Axis Scaling */}
 //         <div className="waveform-section">
 //           <div className="section-title">Signal Waveforms - All {data.length} Data Points</div>
-          
+
 //           <div className="waveform-grid">
 //             {numericalColumns.slice(0, 4).map((column, index) => (
 //               <div key={column} className="waveform-container">
@@ -217,7 +217,7 @@
 //                   <span className="signal-label">{column} Signal</span>
 //                   <span className="rms-value">{calculateRMS(column)} g rms</span>
 //                 </div>
-                
+
 //                 <div className="oscilloscope-display">
 //                   <ResponsiveContainer width="100%" height={200}>
 //                     <LineChart data={timeSeriesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
@@ -268,7 +268,7 @@
 //         {/* Electrical Measurements with Exact Y-Axis Scaling */}
 //         <div className="waveform-section">
 //           <div className="section-title">Electrical Measurements - All {electricalData.length} Data Points</div>
-          
+
 //           <div className="waveform-grid">
 //             {/* Combined Voltage and Current Chart with Exact Y-Axis Ranges */}
 //             {(electricalNumericalColumns.includes('Voltage_V') || electricalNumericalColumns.includes('Current_mA')) && (
@@ -281,7 +281,7 @@
 //                     {electricalNumericalColumns.includes('Current_mA') && `${calculateAverage('Current_mA', electricalData)} mA avg`}
 //                   </span>
 //                 </div>
-                
+
 //                 <div className="oscilloscope-display">
 //                   <ResponsiveContainer width="100%" height={300}>
 //                     <LineChart data={electricalTimeSeriesData} margin={{ top: 5, right: 30, left: 5, bottom: 5 }}>
@@ -302,7 +302,7 @@
 //                         tickLine={false}
 //                         tick={{ fontSize: 10, fill: '#888' }}
 //                       />
-                      
+
 //                       {/* Left Y-Axis for Voltage - Exact Range */}
 //                       <YAxis 
 //                         yAxisId="voltage"
@@ -313,7 +313,7 @@
 //                         label={{ value: 'Voltage (V)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#FFD700' } }}
 //                         domain={electricalNumericalColumns.includes('Voltage_V') ? getExactDataRange('Voltage_V', electricalData) : ['auto', 'auto']}
 //                       />
-                      
+
 //                       {/* Right Y-Axis for Current - Exact Range */}
 //                       <YAxis 
 //                         yAxisId="current"
@@ -324,7 +324,7 @@
 //                         label={{ value: 'Current (mA)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#00BFFF' } }}
 //                         domain={electricalNumericalColumns.includes('Current_mA') ? getExactDataRange('Current_mA', electricalData) : ['auto', 'auto']}
 //                       />
-                      
+
 //                       {electricalNumericalColumns.includes('Voltage_V') && (
 //                         <Line 
 //                           yAxisId="voltage"
@@ -336,7 +336,7 @@
 //                           name="Voltage (V)"
 //                         />
 //                       )}
-                      
+
 //                       {electricalNumericalColumns.includes('Current_mA') && (
 //                         <Line 
 //                           yAxisId="current"
@@ -348,7 +348,7 @@
 //                           name="Current (mA)"
 //                         />
 //                       )}
-                      
+
 //                       <Legend verticalAlign="top" height={36} />
 //                       <Tooltip 
 //                         contentStyle={{
@@ -369,7 +369,7 @@
 
 //         {/* Metrics and Analysis - Bottom Row */}
 //         <div className="metrics-analysis-row">
-          
+
 //           {/* Current Values - Enhanced */}
 //           <div className="current-values-panel">
 //             <div className="panel-header">Current Signal Values</div>
@@ -408,7 +408,7 @@
 //           <div className="key-metrics-panel">
 //             <div className="panel-header">Analysis Results</div>
 //             <div className="metrics-display">
-              
+
 //               <div className="metric-box input-metric">
 //                 <div className="metric-label">Input Accelerometer RMS</div>
 //                 <div className="metric-value">
@@ -431,7 +431,7 @@
 //                 <div className="metric-unit">%</div>
 //               </div>
 
-             
+
 
 //             </div>
 //           </div>
@@ -594,7 +594,7 @@
 //   // ✅ VARIABLE DECLARATIONS - All variables declared BEFORE PDF function
 //   const headers = Object.keys(data[0]);
 //   const numericalColumns = headers.filter(header => typeof data[0][header] === 'number');
-  
+
 //   const electricalHeaders = electricalData.length > 0 ? Object.keys(electricalData[0]) : [];
 //   const electricalNumericalColumns = electricalHeaders.filter(header => 
 //     electricalData.length > 0 && typeof electricalData[0][header] === 'number'
@@ -605,16 +605,16 @@
 //     const values = dataset
 //       .map(item => item[column])
 //       .filter(val => typeof val === 'number' && !isNaN(val));
-    
+
 //     if (values.length === 0) return ['auto', 'auto'];
-    
+
 //     const min = Math.min(...values);
 //     const max = Math.max(...values);
-    
+
 //     if (min === max) {
 //       return [min - 0.1, max + 0.1];
 //     }
-    
+
 //     return [min, max];
 //   };
 
@@ -635,10 +635,10 @@
 //   // Calculate derived values
 //   let latestDifference = null;
 //   let latestFrequency = null;
-  
+
 //   if (latestEntry && typeof latestEntry.S1 === 'number' && typeof latestEntry.S2 === 'number') {
 //     latestDifference = parseFloat((latestEntry.S1 - latestEntry.S2).toFixed(2));
-    
+
 //     let frequencyCount = 0;
 //     data.forEach(row => {
 //       if (typeof row.S1 === 'number' && typeof row.S2 === 'number') {
@@ -688,7 +688,7 @@
 //     try {
 //       // Create PDF instance
 //       const doc = new jsPDF();
-      
+
 //       // Verify autoTable is available with multiple checks
 //       if (typeof doc.autoTable !== 'function') {
 //         // Try to manually attach the plugin
@@ -709,13 +709,13 @@
 //       doc.setFontSize(20);
 //       doc.setTextColor(40, 40, 40);
 //       doc.text('Signal & Electrical Analysis Report', margin, yPosition);
-      
+
 //       yPosition += 15;
 //       doc.setFontSize(12);
 //       doc.setTextColor(100, 100, 100);
 //       doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
 //       doc.text(`Last Data Update: ${lastUpdated.toLocaleString()}`, margin, yPosition + 7);
-      
+
 //       yPosition += 25;
 
 //       // Current Signal Values Section
@@ -967,13 +967,13 @@
 //       // Save the PDF
 //       const fileName = `Signal_Electrical_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
 //       doc.save(fileName);
-      
+
 //       // Success feedback
 //       console.log('PDF generated successfully');
-      
+
 //     } catch (error) {
 //       console.error('PDF generation failed:', error);
-      
+
 //       // User-friendly error messages
 //       let errorMessage = 'Failed to generate PDF report. ';
 //       if (error.message.includes('autoTable')) {
@@ -983,7 +983,7 @@
 //       } else {
 //         errorMessage += 'Please try again or check your browser console for details.';
 //       }
-      
+
 //       alert(errorMessage);
 //     }
 //   };
@@ -993,7 +993,7 @@
 //     console.log('Testing PDF capabilities...');
 //     console.log('jsPDF available:', typeof jsPDF);
 //     console.log('autoTable available:', typeof autoTable);
-    
+
 //     try {
 //       const testDoc = new jsPDF();
 //       console.log('jsPDF instance created successfully');
@@ -1032,7 +1032,7 @@
 //             >
 //               🧪 Test PDF
 //             </button> */}
-            
+
 //             <button 
 //               className="generate-report-btn"
 //               onClick={generatePDFReport}
@@ -1049,11 +1049,11 @@
 
 //       {/* Main Analysis Grid */}
 //       <div className="analysis-main-grid">
-        
+
 //         {/* Signal Waveforms */}
 //         <div className="waveform-section">
 //           <div className="section-title">Signal Waveforms - All {data.length} Data Points</div>
-          
+
 //           <div className="waveform-grid">
 //             {numericalColumns.slice(0, 4).map((column, index) => (
 //               <div key={column} className="waveform-container">
@@ -1061,7 +1061,7 @@
 //                   <span className="signal-label">{column} Signal</span>
 //                   <span className="rms-value">{calculateRMS(column)} g rms</span>
 //                 </div>
-                
+
 //                 <div className="oscilloscope-display">
 //                   <ResponsiveContainer width="100%" height={200}>
 //                     <LineChart data={timeSeriesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
@@ -1112,7 +1112,7 @@
 //         {/* Electrical Measurements */}
 //         <div className="waveform-section">
 //           <div className="section-title">Electrical Measurements - All {electricalData.length} Data Points</div>
-          
+
 //           <div className="waveform-grid">
 //             {(electricalNumericalColumns.includes('Voltage_V') || electricalNumericalColumns.includes('Current_mA')) && (
 //               <div className="waveform-container" style={{ width: '100%' }}>
@@ -1124,7 +1124,7 @@
 //                     {electricalNumericalColumns.includes('Current_mA') && `${calculateAverage('Current_mA', electricalData)} mA avg`}
 //                   </span>
 //                 </div>
-                
+
 //                 <div className="oscilloscope-display">
 //                   <ResponsiveContainer width="100%" height={300}>
 //                     <LineChart data={electricalTimeSeriesData} margin={{ top: 5, right: 30, left: 5, bottom: 5 }}>
@@ -1145,7 +1145,7 @@
 //                         tickLine={false}
 //                         tick={{ fontSize: 10, fill: '#888' }}
 //                       />
-                      
+
 //                       <YAxis 
 //                         yAxisId="voltage"
 //                         orientation="left"
@@ -1155,7 +1155,7 @@
 //                         label={{ value: 'Voltage (V)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#FFD700' } }}
 //                         domain={electricalNumericalColumns.includes('Voltage_V') ? getExactDataRange('Voltage_V', electricalData) : ['auto', 'auto']}
 //                       />
-                      
+
 //                       <YAxis 
 //                         yAxisId="current"
 //                         orientation="right"
@@ -1165,7 +1165,7 @@
 //                         label={{ value: 'Current (mA)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#00BFFF' } }}
 //                         domain={electricalNumericalColumns.includes('Current_mA') ? getExactDataRange('Current_mA', electricalData) : ['auto', 'auto']}
 //                       />
-                      
+
 //                       {electricalNumericalColumns.includes('Voltage_V') && (
 //                         <Line 
 //                           yAxisId="voltage"
@@ -1177,7 +1177,7 @@
 //                           name="Voltage (V)"
 //                         />
 //                       )}
-                      
+
 //                       {electricalNumericalColumns.includes('Current_mA') && (
 //                         <Line 
 //                           yAxisId="current"
@@ -1189,7 +1189,7 @@
 //                           name="Current (mA)"
 //                         />
 //                       )}
-                      
+
 //                       <Legend verticalAlign="top" height={36} />
 //                       <Tooltip 
 //                         contentStyle={{
@@ -1210,7 +1210,7 @@
 
 //         {/* Metrics and Analysis */}
 //         <div className="metrics-analysis-row">
-          
+
 //           {/* Current Signal Values */}
 //           <div className="current-values-panel">
 //             <div className="panel-header">Current Signal Values</div>
@@ -1249,7 +1249,7 @@
 //           <div className="key-metrics-panel">
 //             <div className="panel-header">Analysis Results</div>
 //             <div className="metrics-display">
-              
+
 //               <div className="metric-box input-metric">
 //                 <div className="metric-label">Input Accelerometer RMS</div>
 //                 <div className="metric-value">
@@ -1402,7 +1402,7 @@ const Dashboard = () => {
           }
           return newRow;
         });
-        
+
         setData(processedData);
         setLatestEntry(processedData[processedData.length - 1]);
 
@@ -1450,9 +1450,9 @@ const Dashboard = () => {
   // Variable declarations
   const headers = Object.keys(data[0]);
   const numericalColumns = headers.filter(header => typeof data[0][header] === 'number');
-  
+
   const electricalHeaders = electricalData.length > 0 ? Object.keys(electricalData[0]) : [];
-  const electricalNumericalColumns = electricalHeaders.filter(header => 
+  const electricalNumericalColumns = electricalHeaders.filter(header =>
     electricalData.length > 0 && typeof electricalData[0][header] === 'number'
   );
 
@@ -1467,19 +1467,19 @@ const Dashboard = () => {
   const calculateACRMS = (column, dataset = data) => {
     const values = dataset.map(item => item[column]).filter(val => typeof val === 'number');
     if (values.length === 0) return '0.000';
-    
+
     // Calculate mean (DC component)
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    
+
     // Remove DC component and calculate AC RMS
     const acValues = values.map(val => val - mean);
     const sumSquares = acValues.reduce((sum, val) => sum + val * val, 0);
-    
+
     return Math.sqrt(sumSquares / values.length).toFixed(3);
   };
 
   const calculateRMS = (column, dataset = data) => {
-    return rmsMode === 'ac-coupled' 
+    return rmsMode === 'ac-coupled'
       ? calculateACRMS(column, dataset)
       : calculateStandardRMS(column, dataset);
   };
@@ -1488,13 +1488,13 @@ const Dashboard = () => {
   const getStatistics = (column, dataset = data) => {
     const values = dataset.map(item => item[column]).filter(val => typeof val === 'number');
     if (values.length === 0) return null;
-    
+
     const min = Math.min(...values);
     const max = Math.max(...values);
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const standardRMS = Math.sqrt(values.reduce((sum, val) => sum + val * val, 0) / values.length);
     const acRMS = Math.sqrt(values.reduce((sum, val) => sum + (val - mean) * (val - mean), 0) / values.length);
-    
+
     return {
       min: min.toFixed(3),
       max: max.toFixed(3),
@@ -1511,16 +1511,16 @@ const Dashboard = () => {
     const values = dataset
       .map(item => item[column])
       .filter(val => typeof val === 'number' && !isNaN(val));
-    
+
     if (values.length === 0) return ['auto', 'auto'];
-    
+
     const min = Math.min(...values);
     const max = Math.max(...values);
-    
+
     if (min === max) {
       return [min - 0.1, max + 0.1];
     }
-    
+
     return [min, max];
   };
 
@@ -1536,18 +1536,18 @@ const Dashboard = () => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      img.onload = function() {
+      img.onload = function () {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         // Set canvas dimensions to match image
         canvas.width = img.width;
         canvas.height = img.height;
-         ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         // Draw image on canvas
         ctx.drawImage(img, 0, 0);
-        
+
         // Get base64 data
         const dataURL = canvas.toDataURL('image/png', 0.8);
         resolve(dataURL);
@@ -1560,10 +1560,10 @@ const Dashboard = () => {
   // Calculate derived values WITH INTERCHANGED S1/S2
   let latestDifference = null;
   let latestFrequency = null;
-  
+
   if (latestEntry && typeof latestEntry.S1 === 'number' && typeof latestEntry.S2 === 'number') {
     latestDifference = parseFloat((latestEntry.S1 - latestEntry.S2).toFixed(2));
-    
+
     let frequencyCount = 0;
     data.forEach(row => {
       if (typeof row.S1 === 'number' && typeof row.S2 === 'number') {
@@ -1674,10 +1674,10 @@ const Dashboard = () => {
   const generatePDFReport = async () => {
     try {
       const doc = new jsPDF();
-      
+
       if (typeof doc.autoTable !== 'function') {
         if (typeof autoTable === 'function') {
-          doc.autoTable = function(options) {
+          doc.autoTable = function (options) {
             return autoTable(this, options);
           };
         } else {
@@ -1692,16 +1692,16 @@ const Dashboard = () => {
       // ✅ CONVERT LOGO TO BASE64 AND ADD TO PDF
       try {
         const logoBase64 = await getImageBase64(sphereNextLogo);
-        
+
         // Add logo to header (adjust dimensions as needed)
         doc.addImage(logoBase64, 'PNG', margin, yPosition, 50, 25);
         yPosition += 30; // Move down after logo
-        
+
         // Add company name next to logo
         doc.setFontSize(18);
         doc.setTextColor(40, 40, 40);
         // doc.text('SphereNext Innovation Labs', margin + 55, yPosition - 15);
-        
+
       } catch (logoError) {
         console.log('Logo loading failed, continuing without logo:', logoError);
         // Continue without logo if conversion fails
@@ -1715,7 +1715,7 @@ const Dashboard = () => {
       doc.setFontSize(16);
       doc.setTextColor(255, 102, 0); // Orange color
       doc.text('', margin, yPosition);
-      
+
       yPosition += 15;
       doc.setFontSize(12);
       doc.setTextColor(100, 100, 100);
@@ -1723,7 +1723,7 @@ const Dashboard = () => {
       doc.text(`Last Data Update: ${lastUpdated.toLocaleString()}`, margin, yPosition + 7);
       doc.text(`RMS Mode: ${rmsMode.toUpperCase()}`, margin, yPosition + 14);
       doc.text(`Note: S1 and S2 values have been interchanged`, margin, yPosition + 21);
-      
+
       // Add separator line
       yPosition += 30;
       doc.setLineWidth(0.5);
@@ -1755,7 +1755,7 @@ const Dashboard = () => {
         head: [['Parameter', 'Value']],
         body: performanceData,
         theme: 'striped',
-        headStyles: { 
+        headStyles: {
           fillColor: [255, 102, 0], // Orange color matching brand
           textColor: 255,
           fontStyle: 'bold'
@@ -1777,7 +1777,7 @@ const Dashboard = () => {
         if (yPosition > 220) {
           doc.addPage();
           yPosition = 20;
-          
+
           // Add smaller logo to new pages
           // try {
           //   const logoBase64 = await getImageBase64(sphereNextLogo);
@@ -1808,7 +1808,7 @@ const Dashboard = () => {
           head: [statsData[0]],
           body: statsData.slice(1),
           theme: 'striped',
-          headStyles: { 
+          headStyles: {
             fillColor: [52, 152, 219], // Blue color
             textColor: 255,
             fontStyle: 'bold'
@@ -1836,9 +1836,9 @@ const Dashboard = () => {
 
       const fileName = `SphereNext_Signal_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
       doc.save(fileName);
-      
+
       console.log('PDF with logo generated successfully');
-      
+
     } catch (error) {
       console.error('PDF generation failed:', error);
       alert('Failed to generate PDF report. Please try again.');
@@ -1856,8 +1856,8 @@ const Dashboard = () => {
           </h1>
           <div className="header-actions">
             <div className="analysis-controls">
-              <select 
-                value={rmsMode} 
+              <select
+                value={rmsMode}
                 onChange={(e) => setRmsMode(e.target.value)}
                 style={{
                   backgroundColor: '#2c3e50',
@@ -1871,7 +1871,7 @@ const Dashboard = () => {
                 <option value="standard">Standard RMS</option>
                 <option value="ac-coupled">AC-Coupled RMS</option>
               </select>
-              
+
               {/* <button 
                 onClick={() => setShowDebugInfo(!showDebugInfo)}
                 style={{
@@ -1888,8 +1888,8 @@ const Dashboard = () => {
                 {showDebugInfo ? '📊 Hide Info' : '📊 Show Info'}
               </button> */}
             </div>
-            
-            <button 
+
+            <button
               className="generate-report-btn"
               onClick={generatePDFReport}
             >
@@ -1945,7 +1945,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div style={{ marginTop: '10px' }}>
-            <strong>Current Values:</strong> 
+            <strong>Current Values:</strong>
             <span style={{ color: '#2ecc71' }}>
               S1 RMS: {s1RMS.toFixed(3)}g | S2 RMS: Display={displayS2RMS}g | Actual={s2RMS.toFixed(3)}g | {s2Status} | Transmissibility: {displayTransmissibility}% (Actual: {transmissibility}%)
             </span>
@@ -1955,115 +1955,116 @@ const Dashboard = () => {
 
       {/* Main Analysis Grid */}
       <div className="analysis-main-grid">
-        
+
         {/* Signal Waveforms */}
-{/* Signal Waveforms */}
-<div className="waveform-section">
-  <div className="section-title">
-    Signal Waveforms 
-    <span style={{ fontSize: '14px', color: '#3498db', marginLeft: '10px' }}>
-      {/* (S1↔S2 INTERCHANGED - RMS Mode: {rmsMode.toUpperCase()}) */}
-    </span>
-  </div>
-  
-  <div className="waveform-grid">
-    {numericalColumns.slice(0, 4).map((column, index) => {
-      const stats = getStatistics(column);
-      const isS1Column = column === 'S1';
-      const isS2Column = column === 'S2';
-      
-      // ✅ INTERCHANGE DISPLAY LABELS AND RMS VALUES
-      let displayLabel = column;
-      let displayRMSValue = calculateRMS(column);
-      
-      if (isS1Column) {
-        displayLabel = 'S2'; // Show S2 label for S1 data
-        displayRMSValue = isS2Column ? displayS2RMS : calculateRMS('S2'); // Show S2 RMS value
-      } else if (isS2Column) {
-        displayLabel = 'S1'; // Show S1 label for S2 data  
-        displayRMSValue = calculateRMS('S1'); // Show S1 RMS value
-      }
-      
-      return (
-        <div key={column} className="waveform-container">
-          <div className="waveform-header">
-            <span className="signal-label">
-              {displayLabel} Signal 
+        <div className="waveform-section">
+          <div className="section-title">
+            Signal Waveforms
+            <span style={{ fontSize: '14px', color: '#3498db', marginLeft: '10px' }}>
+              {/* (S1↔S2 INTERCHANGED - RMS Mode: {rmsMode.toUpperCase()}) */}
             </span>
-            <div className="signal-metrics">
-              <span className="rms-value">
-                {displayRMSValue} g rms
-              </span>
-              {stats && (
-                <div style={{ fontSize: '10px', color: '#95a5a6' }}>
-                  Peak: {stats.max}g | DC: {stats.mean}g
-                </div>
-              )}
-            </div>
           </div>
-          
-          <div className="oscilloscope-display">
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={timeSeriesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <defs>
-                  <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.8}/>
-                    <stop offset="100%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.1}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="1 1" stroke="#333" opacity={0.5} />
-                <XAxis 
-                  dataKey="time" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: '#888' }}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: '#888' }}
-                  domain={getExactDataRange(column, data)}
-                />
-                {/* Reference lines for S2 target range - now applies to S1 display */}
-                {isS1Column && (
-                  <>
-                    <ReferenceLine y={2} stroke="#3498db" strokeDasharray="3 3" label="2g Min" />
-                    <ReferenceLine y={5} stroke="#3498db" strokeDasharray="3 3" label="5g Max" />
-                    <ReferenceLine y={-2} stroke="#3498db" strokeDasharray="3 3" />
-                    <ReferenceLine y={-5} stroke="#3498db" strokeDasharray="3 3" />
-                  </>
-                )}
-                <Line 
-                  type="monotone" 
-                  dataKey={column}
-                  stroke={index % 2 === 0 ? "#00ff41" : "#ff0080"}
-                  strokeWidth={1.5}
-                  dot={false}
-                  fill={`url(#gradient-${index})`}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: '#000',
-                    border: '1px solid #333',
-                    borderRadius: '4px',
-                    color: '#fff',
-                    fontSize: '12px'
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+
+          <div className="waveform-grid">
+            {numericalColumns.slice(0, 4).map((column, index) => {
+              const stats = getStatistics(column);
+              const isS2Column = column === 'S2'; // ✅ KEEP ORIGINAL LOGIC
+
+              // ✅ INTERCHANGE DISPLAY LABEL 
+              let displayLabel = column;
+              if (column === 'S1') {
+                displayLabel = 'S2'; // Show S2 label for S1 data
+              } else if (column === 'S2') {
+                displayLabel = 'S1'; // Show S1 label for S2 data
+              }
+
+              // ✅ INTERCHANGE DISPLAYED RMS VALUES (FRONTEND ONLY)
+              let displayRMSValue;
+              if (column === 'S1') {
+                // When displaying S1 data, show S2's RMS value
+                displayRMSValue = displayS2RMS; // This will show 12.560
+              } else if (column === 'S2') {
+                // When displaying S2 data, show S1's RMS value  
+                displayRMSValue = calculateRMS('S1'); // This will show 4.772
+              } else {
+                // For other columns, use original logic
+                displayRMSValue = isS2Column ? displayS2RMS : calculateRMS(column);
+              }
+
+              return (
+                <div key={column} className="waveform-container">
+                  <div className="waveform-header">
+                    <span className="signal-label">
+                      {displayLabel} Signal
+                    </span>
+                    <div className="signal-metrics">
+                      <span className="rms-value">
+                        {displayRMSValue} g rms {/* ✅ NOW SHOWS INTERCHANGED RMS VALUES */}
+                      </span>
+                      {stats && (
+                        <div style={{ fontSize: '10px', color: '#95a5a6' }}>
+                          Peak: {stats.max}g | DC: {stats.mean}g
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="oscilloscope-display">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={timeSeriesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.8} />
+                            <stop offset="100%" stopColor={index % 2 === 0 ? "#00ff41" : "#ff0080"} stopOpacity={0.1} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="1 1" stroke="#333" opacity={0.5} />
+                        <XAxis
+                          dataKey="time"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 10, fill: '#888' }}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 10, fill: '#888' }}
+                          domain={getExactDataRange(column, data)}
+                        />
+                        {/* ✅ ORIGINAL REFERENCE LINES LOGIC KEPT */}
+                        {isS2Column && (
+                          <>
+                            <ReferenceLine y={2} stroke="#3498db" strokeDasharray="3 3" label="2g Min" />
+                            <ReferenceLine y={5} stroke="#3498db" strokeDasharray="3 3" label="5g Max" />
+                            <ReferenceLine y={-2} stroke="#3498db" strokeDasharray="3 3" />
+                            <ReferenceLine y={-5} stroke="#3498db" strokeDasharray="3 3" />
+                          </>
+                        )}
+                        <Line
+                          type="monotone"
+                          dataKey={column}
+                          stroke={index % 2 === 0 ? "#00ff41" : "#ff0080"}
+                          strokeWidth={1.5}
+                          dot={false}
+                          fill={`url(#gradient-${index})`}
+                        />
+                        
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      );
-    })}
-  </div>
-</div>
+
+
 
 
         {/* Electrical Measurements */}
         <div className="waveform-section">
           <div className="section-title">Electrical Measurements</div>
-          
+
           <div className="waveform-grid">
             {(electricalNumericalColumns.includes('Voltage_V') || electricalNumericalColumns.includes('Current_mA')) && (
               <div className="waveform-container" style={{ width: '100%' }}>
@@ -2075,29 +2076,29 @@ const Dashboard = () => {
                     {electricalNumericalColumns.includes('Current_mA') && `${calculateAverage('Current_mA', electricalData)} mA avg`}
                   </span>
                 </div>
-                
+
                 <div className="oscilloscope-display">
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={electricalTimeSeriesData} margin={{ top: 5, right: 30, left: 5, bottom: 5 }}>
                       <defs>
                         <linearGradient id="voltage-gradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#FFD700" stopOpacity={0.8}/>
-                          <stop offset="100%" stopColor="#FFD700" stopOpacity={0.1}/>
+                          <stop offset="0%" stopColor="#FFD700" stopOpacity={0.8} />
+                          <stop offset="100%" stopColor="#FFD700" stopOpacity={0.1} />
                         </linearGradient>
                         <linearGradient id="current-gradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#00BFFF" stopOpacity={0.8}/>
-                          <stop offset="100%" stopColor="#00BFFF" stopOpacity={0.1}/>
+                          <stop offset="0%" stopColor="#00BFFF" stopOpacity={0.8} />
+                          <stop offset="100%" stopColor="#00BFFF" stopOpacity={0.1} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="1 1" stroke="#333" opacity={0.5} />
-                      <XAxis 
-                        dataKey="time" 
+                      <XAxis
+                        dataKey="time"
                         axisLine={false}
                         tickLine={false}
                         tick={{ fontSize: 10, fill: '#888' }}
                       />
-                      
-                      <YAxis 
+
+                      <YAxis
                         yAxisId="voltage"
                         orientation="left"
                         axisLine={false}
@@ -2106,8 +2107,8 @@ const Dashboard = () => {
                         label={{ value: 'Voltage (V)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#FFD700' } }}
                         domain={electricalNumericalColumns.includes('Voltage_V') ? getExactDataRange('Voltage_V', electricalData) : ['auto', 'auto']}
                       />
-                      
-                      <YAxis 
+
+                      <YAxis
                         yAxisId="current"
                         orientation="right"
                         axisLine={false}
@@ -2116,11 +2117,11 @@ const Dashboard = () => {
                         label={{ value: 'Current (mA)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#00BFFF' } }}
                         domain={electricalNumericalColumns.includes('Current_mA') ? getExactDataRange('Current_mA', electricalData) : ['auto', 'auto']}
                       />
-                      
+
                       {electricalNumericalColumns.includes('Voltage_V') && (
-                        <Line 
+                        <Line
                           yAxisId="voltage"
-                          type="monotone" 
+                          type="monotone"
                           dataKey="Voltage_V"
                           stroke="#FFD700"
                           strokeWidth={2}
@@ -2128,11 +2129,11 @@ const Dashboard = () => {
                           name="Voltage (V)"
                         />
                       )}
-                      
+
                       {electricalNumericalColumns.includes('Current_mA') && (
-                        <Line 
+                        <Line
                           yAxisId="current"
-                          type="monotone" 
+                          type="monotone"
                           dataKey="Current_mA"
                           stroke="#00BFFF"
                           strokeWidth={2}
@@ -2140,17 +2141,9 @@ const Dashboard = () => {
                           name="Current (mA)"
                         />
                       )}
-                      
+
                       <Legend verticalAlign="top" height={36} />
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: '#000',
-                          border: '1px solid #333',
-                          borderRadius: '4px',
-                          color: '#fff',
-                          fontSize: '12px'
-                        }}
-                      />
+                      
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -2161,7 +2154,7 @@ const Dashboard = () => {
 
         {/* Clean Metrics and Analysis */}
         <div className="metrics-analysis-row">
-          
+
           {/* Current Signal Values */}
           <div className="current-values-panel">
             <div className="panel-header">Current Signal Values (S1↔S2 Interchanged)</div>
@@ -2202,7 +2195,7 @@ const Dashboard = () => {
           <div className="key-metrics-panel">
             <div className="panel-header">Analysis Results (S1↔S2)</div>
             <div className="metrics-display">
-              
+
               <div className="metric-box input-metric">
                 <div className="metric-label">Input RMS (S1)</div>
                 <div className="metric-value">
@@ -2272,19 +2265,19 @@ const Dashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="1 1" stroke="#333" opacity={0.3} />
-                <XAxis 
-                  dataKey="difference" 
+                <XAxis
+                  dataKey="difference"
                   tick={{ fontSize: 8, fill: '#888' }}
                   axisLine={false}
                   tickLine={false}
                   interval={Math.max(0, Math.floor(frequencyChartData.length / 10) - 1)}
                 />
-                <YAxis 
+                <YAxis
                   tick={{ fontSize: 10, fill: '#888' }}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
                     backgroundColor: '#000',
                     border: '1px solid #333',
@@ -2293,8 +2286,8 @@ const Dashboard = () => {
                     fontSize: '12px'
                   }}
                 />
-                <Bar 
-                  dataKey="frequency" 
+                <Bar
+                  dataKey="frequency"
                   fill="url(#barGradient)"
                   stroke="#00ff41"
                   strokeWidth={1}
