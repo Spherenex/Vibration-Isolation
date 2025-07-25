@@ -1355,6 +1355,7 @@ import autoTable from 'jspdf-autotable';
 import './Dashboard.css';
 // ✅ IMPORT YOUR LOGO FROM ASSETS
 import sphereNextLogo from '../assets/Logo1.png';
+import html2canvas from 'html2canvas';
 
 const Dashboard = () => {
   // State variables
@@ -1670,180 +1671,462 @@ const Dashboard = () => {
   const s1Stats = getStatistics('S1');
   const s2Stats = getStatistics('S2');
 
-  // ✅ ENHANCED PDF GENERATION WITH LOGO FROM ASSETS
-  const generatePDFReport = async () => {
-    try {
-      const doc = new jsPDF();
+  
+  // const generatePDFReport = async () => {
+  //   try {
+  //     const doc = new jsPDF();
 
-      if (typeof doc.autoTable !== 'function') {
-        if (typeof autoTable === 'function') {
-          doc.autoTable = function (options) {
-            return autoTable(this, options);
-          };
-        } else {
-          throw new Error('AutoTable plugin not available');
-        }
+  //     if (typeof doc.autoTable !== 'function') {
+  //       if (typeof autoTable === 'function') {
+  //         doc.autoTable = function (options) {
+  //           return autoTable(this, options);
+  //         };
+  //       } else {
+  //         throw new Error('AutoTable plugin not available');
+  //       }
+  //     }
+
+  //     const pageWidth = doc.internal.pageSize.width;
+  //     const margin = 20;
+  //     let yPosition = 20;
+
+  //     // ✅ CONVERT LOGO TO BASE64 AND ADD TO PDF
+  //     try {
+  //       const logoBase64 = await getImageBase64(sphereNextLogo);
+
+  //       // Add logo to header (adjust dimensions as needed)
+  //       doc.addImage(logoBase64, 'PNG', margin, yPosition, 50, 25);
+  //       yPosition += 30; // Move down after logo
+
+  //       // Add company name next to logo
+  //       doc.setFontSize(18);
+  //       doc.setTextColor(40, 40, 40);
+  //       // doc.text('SphereNext Innovation Labs', margin + 55, yPosition - 15);
+
+  //     } catch (logoError) {
+  //       console.log('Logo loading failed, continuing without logo:', logoError);
+  //       // Continue without logo if conversion fails
+  //       doc.setFontSize(18);
+  //       doc.setTextColor(40, 40, 40);
+  //       // doc.text('SphereNext Innovation Labs', margin, yPosition);
+  //       yPosition += 10;
+  //     }
+
+  //     // Enhanced Header Section
+  //     doc.setFontSize(16);
+  //     doc.setTextColor(255, 102, 0); // Orange color
+  //     doc.text('', margin, yPosition);
+
+  //     yPosition += 15;
+  //     doc.setFontSize(12);
+  //     doc.setTextColor(100, 100, 100);
+  //     doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+  //     doc.text(`Last Data Update: ${lastUpdated.toLocaleString()}`, margin, yPosition + 7);
+  //     doc.text(`RMS Mode: ${rmsMode.toUpperCase()}`, margin, yPosition + 14);
+  //     doc.text(`Note: S1 and S2 values have been interchanged`, margin, yPosition + 21);
+
+  //     // Add separator line
+  //     yPosition += 30;
+  //     doc.setLineWidth(0.5);
+  //     doc.setDrawColor(200, 200, 200);
+  //     doc.line(margin, yPosition, pageWidth - margin, yPosition);
+  //     yPosition += 10;
+
+  //     // Analysis Section
+  //     doc.setFontSize(16);
+  //     doc.setTextColor(40, 40, 40);
+  //     doc.text('Vibration Isolation Performance', margin, yPosition);
+  //     yPosition += 10;
+
+  //     const performanceData = [
+  //       ['Input RMS (S1)', `${s1RMS.toFixed(3)} g rms`],
+  //       ['Output RMS (S2) ', `${displayS2RMS} g rms`],
+  //       // ['Output RMS (S2) Actual', `${s2RMS.toFixed(3)} g rms`],
+  //       // ['S2 Target Range', '2-5g'],
+  //       ['Transmissibility ', `${displayTransmissibility}%`],
+  //       // ['Transmissibility (Actual)', `${transmissibility}%`],
+  //       // ['Transmissibility Target Range', '25-50%'],
+  //       ['Isolation Efficiency', `${isolationEfficiency}%`],
+  //       ['Signal Samples', data.length.toString()],
+  //       ['Electrical Samples', electricalData.length.toString()]
+  //     ];
+
+  //     doc.autoTable({
+  //       startY: yPosition,
+  //       head: [['Parameter', 'Value']],
+  //       body: performanceData,
+  //       theme: 'striped',
+  //       headStyles: {
+  //         fillColor: [255, 102, 0], // Orange color matching brand
+  //         textColor: 255,
+  //         fontStyle: 'bold'
+  //       },
+  //       bodyStyles: {
+  //         textColor: 50
+  //       },
+  //       margin: { left: margin, right: margin },
+  //       styles: {
+  //         fontSize: 10,
+  //         cellPadding: 3
+  //       }
+  //     });
+
+  //     yPosition = doc.lastAutoTable.finalY + 15;
+
+  //     // Detailed Statistics
+  //     if (s1Stats && s2Stats) {
+  //       if (yPosition > 220) {
+  //         doc.addPage();
+  //         yPosition = 20;
+
+  //         // Add smaller logo to new pages
+  //         // try {
+  //         //   const logoBase64 = await getImageBase64(sphereNextLogo);
+  //         //   doc.addImage(logoBase64, 'JPEG', pageWidth - 60, 10, 40, 20);
+  //         // } catch (logoError) {
+  //         //   // Continue without logo on new page
+  //         // }
+  //       }
+
+  //       doc.setFontSize(16);
+  //       doc.setTextColor(40, 40, 40);
+  //       doc.text('Detailed Signal Statistics', margin, yPosition);
+  //       yPosition += 10;
+
+  //       const statsData = [
+  //         ['Metric', 'S1 (Input)', 'S2 (Output)'],
+  //         ['Standard RMS', `${s1Stats.standardRMS} g`, `${s2Stats.standardRMS} g`],
+  //         ['AC-Coupled RMS', `${s1Stats.acRMS} g`, `${s2Stats.acRMS} g`],
+  //         ['Mean (DC)', `${s1Stats.mean} g`, `${s2Stats.mean} g`],
+  //         ['Peak-to-Peak', `${s1Stats.peakToPeak} g`, `${s2Stats.peakToPeak} g`],
+  //         ['Minimum', `${s1Stats.min} g`, `${s2Stats.min} g`],
+  //         ['Maximum', `${s1Stats.max} g`, `${s2Stats.max} g`],
+  //         ['Crest Factor', s1Stats.crestFactor, s2Stats.crestFactor]
+  //       ];
+
+  //       doc.autoTable({
+  //         startY: yPosition,
+  //         head: [statsData[0]],
+  //         body: statsData.slice(1),
+  //         theme: 'striped',
+  //         headStyles: {
+  //           fillColor: [52, 152, 219], // Blue color
+  //           textColor: 255,
+  //           fontStyle: 'bold'
+  //         },
+  //         bodyStyles: {
+  //           textColor: 50
+  //         },
+  //         margin: { left: margin, right: margin },
+  //         styles: {
+  //           fontSize: 9,
+  //           cellPadding: 3
+  //         }
+  //       });
+  //     }
+
+  //     // Add footer with company info
+  //     const pageCount = doc.internal.getNumberOfPages();
+  //     for (let i = 1; i <= pageCount; i++) {
+  //       doc.setPage(i);
+  //       doc.setFontSize(8);
+  //       doc.setTextColor(100, 100, 100);
+  //       doc.text('SphereNext Innovation Labs', margin, doc.internal.pageSize.height - 10);
+  //       doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
+  //     }
+
+  //     const fileName = `SphereNext_Signal_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
+  //     doc.save(fileName);
+
+  //     console.log('PDF with logo generated successfully');
+
+  //   } catch (error) {
+  //     console.error('PDF generation failed:', error);
+  //     alert('Failed to generate PDF report. Please try again.');
+  //   }
+  // };
+
+const generatePDFReport = async () => {
+  try {
+    const doc = new jsPDF();
+    
+    if (typeof doc.autoTable !== 'function') {
+      if (typeof autoTable === 'function') {
+        doc.autoTable = function (options) {
+          return autoTable(this, options);
+        };
+      } else {
+        throw new Error('AutoTable plugin not available');
       }
+    }
 
-      const pageWidth = doc.internal.pageSize.width;
-      const margin = 20;
-      let yPosition = 20;
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    let yPosition = 20;
 
-      // ✅ CONVERT LOGO TO BASE64 AND ADD TO PDF
+    // Helper function to capture chart as image
+    const captureChartAsImage = async (elementSelector, width = 160, height = 100) => {
       try {
-        const logoBase64 = await getImageBase64(sphereNextLogo);
+        const element = document.querySelector(elementSelector);
+        if (!element) {
+          console.warn(`Element not found: ${elementSelector}`);
+          return null;
+        }
+        
+        const canvas = await html2canvas(element, {
+          backgroundColor: 'white',
+          scale: 2, // Higher quality
+          logging: false,
+          useCORS: true
+        });
+        
+        return canvas.toDataURL('image/png', 0.8);
+      } catch (error) {
+        console.error(`Failed to capture ${elementSelector}:`, error);
+        return null;
+      }
+    };
 
-        // Add logo to header (adjust dimensions as needed)
-        doc.addImage(logoBase64, 'PNG', margin, yPosition, 50, 25);
-        yPosition += 30; // Move down after logo
+    // Add logo and header (existing code)
+    try {
+      const logoBase64 = await getImageBase64(sphereNextLogo);
+      doc.addImage(logoBase64, 'PNG', margin, yPosition, 50, 25);
+      yPosition += 30;
+    } catch (logoError) {
+      console.log('Logo loading failed, continuing without logo:', logoError);
+      yPosition += 10;
+    }
 
-        // Add company name next to logo
-        doc.setFontSize(18);
-        doc.setTextColor(40, 40, 40);
-        // doc.text('SphereNext Innovation Labs', margin + 55, yPosition - 15);
+    // Header section (existing code)
+    doc.setFontSize(16);
+    doc.setTextColor(255, 102, 0);
+    doc.text('Vibration Isolation Dashboard Report', margin, yPosition);
+    
+    yPosition += 15;
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+    doc.text(`Last Data Update: ${lastUpdated.toLocaleString()}`, margin, yPosition + 7);
+    doc.text(`RMS Mode: ${rmsMode.toUpperCase()}`, margin, yPosition + 14);
+    doc.text(`Note: S1 and S2 values have been interchanged`, margin, yPosition + 21);
 
-      } catch (logoError) {
-        console.log('Logo loading failed, continuing without logo:', logoError);
-        // Continue without logo if conversion fails
-        doc.setFontSize(18);
-        doc.setTextColor(40, 40, 40);
-        // doc.text('SphereNext Innovation Labs', margin, yPosition);
-        yPosition += 10;
+    yPosition += 35;
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+
+    // Performance table (existing code)
+    doc.setFontSize(16);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Vibration Isolation Performance', margin, yPosition);
+    yPosition += 10;
+
+    const performanceData = [
+      ['Input RMS (S1)', `${s1RMS.toFixed(3)} g rms`],
+      ['Output RMS (S2)', `${displayS2RMS} g rms`],
+      ['Transmissibility', `${displayTransmissibility}%`],
+      ['Isolation Efficiency', `${isolationEfficiency}%`],
+      ['Signal Samples', data.length.toString()],
+      ['Electrical Samples', electricalData.length.toString()]
+    ];
+
+    doc.autoTable({
+      startY: yPosition,
+      head: [['Parameter', 'Value']],
+      body: performanceData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [255, 102, 0],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      bodyStyles: { textColor: 50 },
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 10, cellPadding: 3 }
+    });
+
+    yPosition = doc.lastAutoTable.finalY + 20;
+
+    // NEW: Add Signal Waveforms Charts
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Signal Waveforms', margin, yPosition);
+    yPosition += 10;
+
+    // Capture waveform charts
+    const waveformCharts = [];
+    for (let i = 0; i < Math.min(numericalColumns.length, 4); i++) {
+      const chartImage = await captureChartAsImage(
+        `.waveform-container:nth-child(${i + 1}) .oscilloscope-display`,
+        140, 80
+      );
+      if (chartImage) {
+        waveformCharts.push({
+          image: chartImage,
+          label: `${numericalColumns[i]} Signal`,
+          stats: getStatistics(numericalColumns[i])
+        });
+      }
+    }
+
+    // Add waveform charts to PDF (2 per row)
+    let chartX = margin;
+    let chartY = yPosition;
+    const chartWidth = 80;
+    const chartHeight = 50;
+    const chartSpacing = 10;
+
+    waveformCharts.forEach((chart, index) => {
+      if (index % 2 === 0 && index > 0) {
+        chartY += chartHeight + chartSpacing + 15;
+        chartX = margin;
+      }
+      
+      if (chartY > 220) {
+        doc.addPage();
+        chartY = 20;
+        chartX = margin;
       }
 
-      // Enhanced Header Section
-      doc.setFontSize(16);
-      doc.setTextColor(255, 102, 0); // Orange color
-      doc.text('', margin, yPosition);
-
-      yPosition += 15;
-      doc.setFontSize(12);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
-      doc.text(`Last Data Update: ${lastUpdated.toLocaleString()}`, margin, yPosition + 7);
-      doc.text(`RMS Mode: ${rmsMode.toUpperCase()}`, margin, yPosition + 14);
-      doc.text(`Note: S1 and S2 values have been interchanged`, margin, yPosition + 21);
-
-      // Add separator line
-      yPosition += 30;
-      doc.setLineWidth(0.5);
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 10;
-
-      // Analysis Section
-      doc.setFontSize(16);
+      // Add chart image
+      doc.addImage(chart.image, 'PNG', chartX, chartY, chartWidth, chartHeight);
+      
+      // Add chart label
+      doc.setFontSize(10);
       doc.setTextColor(40, 40, 40);
-      doc.text('Vibration Isolation Performance', margin, yPosition);
+      doc.text(chart.label, chartX, chartY + chartHeight + 8);
+      
+      if (chart.stats) {
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`RMS: ${chart.stats.standardRMS}g`, chartX, chartY + chartHeight + 15);
+        doc.text(`Peak: ${chart.stats.max}g`, chartX, chartY + chartHeight + 20);
+      }
+      
+      chartX += chartWidth + chartSpacing;
+    });
+
+    yPosition = chartY + chartHeight + 30;
+
+    // NEW: Add Electrical Measurements Chart
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Electrical Measurements', margin, yPosition);
+    yPosition += 10;
+
+    const electricalChartImage = await captureChartAsImage(
+      '.waveform-section:nth-child(2) .oscilloscope-display',
+      160, 100
+    );
+
+    if (electricalChartImage) {
+      doc.addImage(electricalChartImage, 'PNG', margin, yPosition, 160, 100);
+      yPosition += 110;
+      
+      // Add electrical stats
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      if (electricalNumericalColumns.includes('Voltage_V')) {
+        doc.text(`Average Voltage: ${calculateAverage('Voltage_V', electricalData)} V`, margin, yPosition);
+      }
+      if (electricalNumericalColumns.includes('Current_mA')) {
+        doc.text(`Average Current: ${calculateAverage('Current_mA', electricalData)} mA`, margin, yPosition + 7);
+      }
+      yPosition += 20;
+    }
+
+    // NEW: Add Frequency Distribution Chart
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Pattern Distribution', margin, yPosition);
+    yPosition += 10;
+
+    const frequencyChartImage = await captureChartAsImage(
+      '.frequency-panel .recharts-wrapper',
+      160, 80
+    );
+
+    if (frequencyChartImage) {
+      doc.addImage(frequencyChartImage, 'PNG', margin, yPosition, 160, 80);
+      yPosition += 90;
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Total Patterns: ${frequencyChartData.length}`, margin, yPosition);
+      yPosition += 15;
+    }
+
+    // Detailed Statistics (existing code)
+    if (s1Stats && s2Stats) {
+      if (yPosition > 180) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Detailed Signal Statistics', margin, yPosition);
       yPosition += 10;
 
-      const performanceData = [
-        ['Input RMS (S1)', `${s1RMS.toFixed(3)} g rms`],
-        ['Output RMS (S2) ', `${displayS2RMS} g rms`],
-        // ['Output RMS (S2) Actual', `${s2RMS.toFixed(3)} g rms`],
-        // ['S2 Target Range', '2-5g'],
-        ['Transmissibility ', `${displayTransmissibility}%`],
-        // ['Transmissibility (Actual)', `${transmissibility}%`],
-        // ['Transmissibility Target Range', '25-50%'],
-        ['Isolation Efficiency', `${isolationEfficiency}%`],
-        ['Signal Samples', data.length.toString()],
-        ['Electrical Samples', electricalData.length.toString()]
+      const statsData = [
+        ['Metric', 'S1 (Input)', 'S2 (Output)'],
+        ['Standard RMS', `${s1Stats.standardRMS} g`, `${s2Stats.standardRMS} g`],
+        ['AC-Coupled RMS', `${s1Stats.acRMS} g`, `${s2Stats.acRMS} g`],
+        ['Mean (DC)', `${s1Stats.mean} g`, `${s2Stats.mean} g`],
+        ['Peak-to-Peak', `${s1Stats.peakToPeak} g`, `${s2Stats.peakToPeak} g`],
+        ['Minimum', `${s1Stats.min} g`, `${s2Stats.min} g`],
+        ['Maximum', `${s1Stats.max} g`, `${s2Stats.max} g`],
+        ['Crest Factor', s1Stats.crestFactor, s2Stats.crestFactor]
       ];
 
       doc.autoTable({
         startY: yPosition,
-        head: [['Parameter', 'Value']],
-        body: performanceData,
+        head: [statsData[0]],
+        body: statsData.slice(1),
         theme: 'striped',
         headStyles: {
-          fillColor: [255, 102, 0], // Orange color matching brand
+          fillColor: [52, 152, 219],
           textColor: 255,
           fontStyle: 'bold'
         },
-        bodyStyles: {
-          textColor: 50
-        },
+        bodyStyles: { textColor: 50 },
         margin: { left: margin, right: margin },
-        styles: {
-          fontSize: 10,
-          cellPadding: 3
-        }
+        styles: { fontSize: 9, cellPadding: 3 }
       });
-
-      yPosition = doc.lastAutoTable.finalY + 15;
-
-      // Detailed Statistics
-      if (s1Stats && s2Stats) {
-        if (yPosition > 220) {
-          doc.addPage();
-          yPosition = 20;
-
-          // Add smaller logo to new pages
-          // try {
-          //   const logoBase64 = await getImageBase64(sphereNextLogo);
-          //   doc.addImage(logoBase64, 'JPEG', pageWidth - 60, 10, 40, 20);
-          // } catch (logoError) {
-          //   // Continue without logo on new page
-          // }
-        }
-
-        doc.setFontSize(16);
-        doc.setTextColor(40, 40, 40);
-        doc.text('Detailed Signal Statistics', margin, yPosition);
-        yPosition += 10;
-
-        const statsData = [
-          ['Metric', 'S1 (Input)', 'S2 (Output)'],
-          ['Standard RMS', `${s1Stats.standardRMS} g`, `${s2Stats.standardRMS} g`],
-          ['AC-Coupled RMS', `${s1Stats.acRMS} g`, `${s2Stats.acRMS} g`],
-          ['Mean (DC)', `${s1Stats.mean} g`, `${s2Stats.mean} g`],
-          ['Peak-to-Peak', `${s1Stats.peakToPeak} g`, `${s2Stats.peakToPeak} g`],
-          ['Minimum', `${s1Stats.min} g`, `${s2Stats.min} g`],
-          ['Maximum', `${s1Stats.max} g`, `${s2Stats.max} g`],
-          ['Crest Factor', s1Stats.crestFactor, s2Stats.crestFactor]
-        ];
-
-        doc.autoTable({
-          startY: yPosition,
-          head: [statsData[0]],
-          body: statsData.slice(1),
-          theme: 'striped',
-          headStyles: {
-            fillColor: [52, 152, 219], // Blue color
-            textColor: 255,
-            fontStyle: 'bold'
-          },
-          bodyStyles: {
-            textColor: 50
-          },
-          margin: { left: margin, right: margin },
-          styles: {
-            fontSize: 9,
-            cellPadding: 3
-          }
-        });
-      }
-
-      // Add footer with company info
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(100, 100, 100);
-        doc.text('SphereNext Innovation Labs', margin, doc.internal.pageSize.height - 10);
-        doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
-      }
-
-      const fileName = `SphereNext_Signal_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
-      doc.save(fileName);
-
-      console.log('PDF with logo generated successfully');
-
-    } catch (error) {
-      console.error('PDF generation failed:', error);
-      alert('Failed to generate PDF report. Please try again.');
     }
-  };
+
+    // Footer (existing code)
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('SphereNext Innovation Labs', margin, doc.internal.pageSize.height - 10);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
+    }
+
+    const fileName = `SphereNext_Signal_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
+    doc.save(fileName);
+
+    console.log('PDF with charts generated successfully');
+
+  } catch (error) {
+    console.error('PDF generation failed:', error);
+    alert('Failed to generate PDF report. Please try again.');
+  }
+};
+
 
   return (
     <div className="dashboard1">
