@@ -1353,6 +1353,8 @@ import Papa from 'papaparse';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Dashboard.css';
+// ✅ IMPORT YOUR LOGO FROM ASSETS
+import sphereNextLogo from '../assets/Logo1.png';
 
 const Dashboard = () => {
   // State variables
@@ -1529,6 +1531,32 @@ const Dashboard = () => {
     return (sum / values.length).toFixed(3);
   };
 
+  // ✅ FUNCTION TO CONVERT IMPORTED IMAGE TO BASE64
+  const getImageBase64 = (imgSrc) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions to match image
+        canvas.width = img.width;
+        canvas.height = img.height;
+         ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw image on canvas
+        ctx.drawImage(img, 0, 0);
+        
+        // Get base64 data
+        const dataURL = canvas.toDataURL('image/png', 0.8);
+        resolve(dataURL);
+      };
+      img.onerror = reject;
+      img.src = imgSrc;
+    });
+  };
+
   // Calculate derived values WITH INTERCHANGED S1/S2
   let latestDifference = null;
   let latestFrequency = null;
@@ -1642,8 +1670,8 @@ const Dashboard = () => {
   const s1Stats = getStatistics('S1');
   const s2Stats = getStatistics('S2');
 
-  // Enhanced PDF generation
-  const generatePDFReport = () => {
+  // ✅ ENHANCED PDF GENERATION WITH LOGO FROM ASSETS
+  const generatePDFReport = async () => {
     try {
       const doc = new jsPDF();
       
@@ -1661,9 +1689,31 @@ const Dashboard = () => {
       const margin = 20;
       let yPosition = 20;
 
-      // Header Section
-      doc.setFontSize(20);
-      doc.setTextColor(40, 40, 40);
+      // ✅ CONVERT LOGO TO BASE64 AND ADD TO PDF
+      try {
+        const logoBase64 = await getImageBase64(sphereNextLogo);
+        
+        // Add logo to header (adjust dimensions as needed)
+        doc.addImage(logoBase64, 'PNG', margin, yPosition, 50, 25);
+        yPosition += 30; // Move down after logo
+        
+        // Add company name next to logo
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        // doc.text('SphereNext Innovation Labs', margin + 55, yPosition - 15);
+        
+      } catch (logoError) {
+        console.log('Logo loading failed, continuing without logo:', logoError);
+        // Continue without logo if conversion fails
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        // doc.text('SphereNext Innovation Labs', margin, yPosition);
+        yPosition += 10;
+      }
+
+      // Enhanced Header Section
+      doc.setFontSize(16);
+      doc.setTextColor(255, 102, 0); // Orange color
       doc.text('', margin, yPosition);
       
       yPosition += 15;
@@ -1674,7 +1724,12 @@ const Dashboard = () => {
       doc.text(`RMS Mode: ${rmsMode.toUpperCase()}`, margin, yPosition + 14);
       doc.text(`Note: S1 and S2 values have been interchanged`, margin, yPosition + 21);
       
-      yPosition += 35;
+      // Add separator line
+      yPosition += 30;
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
 
       // Analysis Section
       doc.setFontSize(16);
@@ -1684,11 +1739,11 @@ const Dashboard = () => {
 
       const performanceData = [
         ['Input RMS (S1)', `${s1RMS.toFixed(3)} g rms`],
-        // ['Output RMS (S2) Display', `${displayS2RMS} g rms`],
-        ['Output RMS ', `${s2RMS.toFixed(3)} g rms`],
+        ['Output RMS (S2) ', `${displayS2RMS} g rms`],
+        // ['Output RMS (S2) Actual', `${s2RMS.toFixed(3)} g rms`],
         // ['S2 Target Range', '2-5g'],
-        // ['Transmissibility (Display)', `${displayTransmissibility}%`],
-        ['Transmissibility ', `${transmissibility}%`],
+        ['Transmissibility ', `${displayTransmissibility}%`],
+        // ['Transmissibility (Actual)', `${transmissibility}%`],
         // ['Transmissibility Target Range', '25-50%'],
         ['Isolation Efficiency', `${isolationEfficiency}%`],
         ['Signal Samples', data.length.toString()],
@@ -1701,7 +1756,7 @@ const Dashboard = () => {
         body: performanceData,
         theme: 'striped',
         headStyles: { 
-          fillColor: [22, 160, 133],
+          fillColor: [255, 102, 0], // Orange color matching brand
           textColor: 255,
           fontStyle: 'bold'
         },
@@ -1722,6 +1777,14 @@ const Dashboard = () => {
         if (yPosition > 220) {
           doc.addPage();
           yPosition = 20;
+          
+          // Add smaller logo to new pages
+          // try {
+          //   const logoBase64 = await getImageBase64(sphereNextLogo);
+          //   doc.addImage(logoBase64, 'JPEG', pageWidth - 60, 10, 40, 20);
+          // } catch (logoError) {
+          //   // Continue without logo on new page
+          // }
         }
 
         doc.setFontSize(16);
@@ -1746,7 +1809,7 @@ const Dashboard = () => {
           body: statsData.slice(1),
           theme: 'striped',
           headStyles: { 
-            fillColor: [52, 152, 219],
+            fillColor: [52, 152, 219], // Blue color
             textColor: 255,
             fontStyle: 'bold'
           },
@@ -1761,10 +1824,20 @@ const Dashboard = () => {
         });
       }
 
-      const fileName = `Signal_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
+      // Add footer with company info
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text('SphereNext Innovation Labs', margin, doc.internal.pageSize.height - 10);
+        doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
+      }
+
+      const fileName = `SphereNext_Signal_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
       doc.save(fileName);
       
-      console.log('PDF generated successfully');
+      console.log('PDF with logo generated successfully');
       
     } catch (error) {
       console.error('PDF generation failed:', error);
@@ -1779,7 +1852,7 @@ const Dashboard = () => {
         <div className="header-content">
           <h1 className="main-title">
             <span className="title-icon">📊</span>
-            Vibration Isolation Dashboard
+            Vibration Isolation Dasboard
           </h1>
           <div className="header-actions">
             <div className="analysis-controls">
@@ -1799,7 +1872,7 @@ const Dashboard = () => {
                 <option value="ac-coupled">AC-Coupled RMS</option>
               </select>
               
-              <button 
+              {/* <button 
                 onClick={() => setShowDebugInfo(!showDebugInfo)}
                 style={{
                   backgroundColor: showDebugInfo ? '#3498db' : '#95a5a6',
@@ -1813,7 +1886,7 @@ const Dashboard = () => {
                 }}
               >
                 {showDebugInfo ? '📊 Hide Info' : '📊 Show Info'}
-              </button>
+              </button> */}
             </div>
             
             <button 
@@ -1886,7 +1959,7 @@ const Dashboard = () => {
         {/* Signal Waveforms */}
         <div className="waveform-section">
           <div className="section-title">
-            Signal Waveforms - All {data.length} Data Points 
+            Signal Waveforms 
             <span style={{ fontSize: '14px', color: '#3498db', marginLeft: '10px' }}>
               {/* (S1↔S2 INTERCHANGED - RMS Mode: {rmsMode.toUpperCase()}) */}
             </span>
@@ -1900,7 +1973,7 @@ const Dashboard = () => {
                 <div key={column} className="waveform-container">
                   <div className="waveform-header">
                     <span className="signal-label">
-                      {column} Signal {column === 'S1' ? '(Originally S2)' : column === 'S2' ? '(Originally S1)' : ''}
+                      {column} Signal 
                     </span>
                     <div className="signal-metrics">
                       <span className="rms-value">
@@ -1973,7 +2046,7 @@ const Dashboard = () => {
 
         {/* Electrical Measurements */}
         <div className="waveform-section">
-          <div className="section-title">Electrical Measurements - All {electricalData.length} Data Points</div>
+          <div className="section-title">Electrical Measurements</div>
           
           <div className="waveform-grid">
             {(electricalNumericalColumns.includes('Voltage_V') || electricalNumericalColumns.includes('Current_mA')) && (
@@ -2151,8 +2224,7 @@ const Dashboard = () => {
           </div>
 
           {/* Clean Performance Status Panel */}
-          <div className="performance-status-panel" style={{
-            display:'none',
+          {/* <div className="performance-status-panel" style={{
             backgroundColor: '#27ae60',
             color: 'white',
             padding: '20px',
@@ -2170,7 +2242,7 @@ const Dashboard = () => {
               <div>S2 RMS: {displayS2RMS}g {s2Status}</div>
               <div>Transmissibility: {displayTransmissibility}%</div>
             </div>
-          </div>
+          </div> */}
 
           {/* Frequency Distribution */}
           <div className="frequency-panel">
@@ -2241,3 +2313,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
