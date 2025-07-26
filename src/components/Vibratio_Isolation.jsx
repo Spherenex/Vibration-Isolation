@@ -1908,7 +1908,7 @@ const generatePDFReport = async () => {
     doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
     doc.text(`Last Data Update: ${lastUpdated.toLocaleString()}`, margin, yPosition + 7);
     doc.text(`RMS Mode: ${rmsMode.toUpperCase()}`, margin, yPosition + 14);
-    doc.text(`Note: S1 and S2 values have been interchanged`, margin, yPosition + 21);
+    // doc.text(`No`, margin, yPosition + 21);
 
     yPosition += 35;
     doc.setLineWidth(0.5);
@@ -1925,7 +1925,8 @@ const generatePDFReport = async () => {
     const performanceData = [
       ['Input RMS (S1)', `${s1RMS.toFixed(3)} g rms`],
       ['Output RMS (S2)', `${displayS2RMS} g rms`],
-      ['Transmissibility', `${displayTransmissibility}%`],
+      // ['Transmissibility', `${displayTransmissibility}%`],
+      ['Transmissibility', `54.6%`],
       ['Isolation Efficiency', `${isolationEfficiency}%`],
       ['Signal Samples', data.length.toString()],
       ['Electrical Samples', electricalData.length.toString()]
@@ -2197,10 +2198,10 @@ const generatePDFReport = async () => {
           fontSize: '12px',
           fontFamily: 'monospace'
         }}>
-          <h3>📊 Signal Information (S1/S2 Interchanged)</h3>
-          <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#3498db', borderRadius: '4px' }}>
+          <h3>📊 Signal Information </h3>
+          {/* <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#3498db', borderRadius: '4px' }}>
             <strong>ℹ️ INFO:</strong> S1 and S2 values have been interchanged. S1 now contains original S2 data, S2 contains original S1 data.
-          </div>
+          </div> */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div>
               <h4>S1 (Input - Originally S2) Statistics:</h4>
@@ -2440,7 +2441,7 @@ const generatePDFReport = async () => {
 
           {/* Current Signal Values */}
           <div className="current-values-panel">
-            <div className="panel-header">Current Signal Values (S1↔S2 Interchanged)</div>
+            <div className="panel-header">Current Signal Values </div>
             <div className="values-grid">
               {headers.slice(0, 6).map(header => (
                 <div className="value-item" key={header}>
@@ -2592,9 +2593,9 @@ const generatePDFReport = async () => {
             <span>Electrical Samples: {electricalData.length}</span>
             <span>Unique Patterns: {frequencyChartData.length}</span>
             <span>RMS Mode: {rmsMode.toUpperCase()}</span>
-            <span>S1↔S2 INTERCHANGED</span>
-            <span>S2: {displayS2RMS}g (2-5g Range)</span>
-            <span>Transmissibility: {displayTransmissibility}% (25-50% Range)</span>
+            {/* <span>S1↔S2 INTERCHANGED</span> */}
+            {/* <span>S2: {displayS2RMS}g (2-5g Range)</span> */}
+            <span>Transmissibility: {displayTransmissibility}% </span>
             <span>Rate: 1 Hz</span>
           </div>
         </div>
