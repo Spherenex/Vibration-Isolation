@@ -390,9 +390,10 @@ const generatePDFReport = async () => {
     doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
     doc.text(`Last Data Update: ${lastUpdated.toLocaleString()}`, margin, yPosition + 7);
     doc.text(`RMS Mode: ${rmsMode.toUpperCase()}`, margin, yPosition + 14);
+    // doc.text(`Note: S1 & S2 RMS values shown as Actual/100`, margin, yPosition + 21);
 
     // Add separator line
-    yPosition += 30;
+    yPosition += 35;
     doc.setLineWidth(0.5);
     doc.setDrawColor(200, 200, 200);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
@@ -405,10 +406,9 @@ const generatePDFReport = async () => {
     yPosition += 10;
 
     const performanceData = [
-      ['Input RMS (S1)', `${displayS1RMS} g rms (S1: Actual/100)`],
-      ['Output RMS (S2)', `${displayS2RMS} g rms (S2: Actual/100)`],
+      ['Input RMS (S1)', `${displayS1RMS} g rms`],
+      ['Output RMS (S2)', `${displayS2RMS} g rms`],
       ['Transmissibility', `${transmissibility}%`],
-      // ['Requirement Status', `${requirementStatus} (< 50%)`],
       ['Isolation Efficiency', `${isolationEfficiency}%`],
       ['Signal Samples', data.length.toString()],
       ['Electrical Samples', electricalData.length.toString()]
@@ -488,7 +488,18 @@ const generatePDFReport = async () => {
       if (chart.stats) {
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
-        doc.text(`RMS: ${chart.stats.standardRMS}g`, chartX, chartY + chartHeight + 15);
+        
+        // Show scaled RMS for S1 and S2, normal for others
+        let rmsValue;
+        if (numericalColumns[index] === 'S1') {
+          rmsValue = `${displayS1RMS}g`;
+        } else if (numericalColumns[index] === 'S2') {
+          rmsValue = `${displayS2RMS}g `;
+        } else {
+          rmsValue = `${chart.stats.standardRMS}g`;
+        }
+        
+        doc.text(`RMS: ${rmsValue}`, chartX, chartY + chartHeight + 15);
         doc.text(`Peak: ${chart.stats.max}g`, chartX, chartY + chartHeight + 20);
       }
       
@@ -569,7 +580,8 @@ const generatePDFReport = async () => {
 
       const statsData = [
         ['Metric', 'S1 (Input)', 'S2 (Output)'],
-        ['Standard RMS', `${s1Stats.standardRMS} g`, `${s2Stats.standardRMS} g`],
+        ['Display RMS', `${displayS1RMS} g`, `${displayS2RMS} g`],
+        ['Actual RMS', `${s1Stats.standardRMS} g`, `${s2Stats.standardRMS} g`],
         ['AC-Coupled RMS', `${s1Stats.acRMS} g`, `${s2Stats.acRMS} g`],
         ['Mean (DC)', `${s1Stats.mean} g`, `${s2Stats.mean} g`],
         ['Peak-to-Peak', `${s1Stats.peakToPeak} g`, `${s2Stats.peakToPeak} g`],
@@ -609,10 +621,10 @@ const generatePDFReport = async () => {
       doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
     }
 
-    const fileName = `SphereNext_Signal_Report_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
+    const fileName = `SphereNext_Signal_Report_S1S2_Scaled_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString().replace(/:/g, '-')}.pdf`;
     doc.save(fileName);
 
-    console.log('PDF generated successfully');
+    console.log('PDF with S1 & S2 scaled RMS values generated successfully');
 
   } catch (error) {
     console.error('PDF generation failed:', error);
@@ -740,7 +752,7 @@ const generatePDFReport = async () => {
           <div className="section-title">
             Signal Waveforms
             <span style={{ fontSize: '14px', color: '#3498db', marginLeft: '10px' }}>
-              (S1 & S2 RMS: Actual/100 | Transmissibility: {transmissibility}% | Requirement: {'<'} 50%)
+              {/* (S1 & S2 RMS: Actual/100 | Transmissibility: {transmissibility}% | Requirement: < 50%) */}
             </span>
           </div>
 
@@ -967,7 +979,7 @@ const generatePDFReport = async () => {
 
           {/* Key Metrics Panel - Requirement Based */}
           <div className="key-metrics-panel">
-            <div className="panel-header">Analysis Results (S1 & S2 Display: Actual/100 | Requirement: {'<'} 50%)</div>
+            <div className="panel-header">Analysis Results (S1 & S2 Display: Actual/100 | Requirement: {'<'}' 50%)</div>
             <div className="metrics-display">
 
               <div className="metric-box input-metric">
@@ -979,7 +991,7 @@ const generatePDFReport = async () => {
                 <div style={{ fontSize: '10px', color: '#95a5a6' }}>S1 Display: Actual/100</div>
               </div>
 
-              <div className="metric-box output-metric" style={{ backgroundColor: s2Color }}>
+              <div className="metric-box output-metric" >
                 <div className="metric-label">Output RMS (S2)</div>
                 <div className="metric-value">{displayS2RMS}</div>
                 <div className="metric-unit">g rms {s2Status}</div>
@@ -988,12 +1000,12 @@ const generatePDFReport = async () => {
                 </div>
               </div>
 
-              <div className="metric-box transmissibility-metric" style={{ backgroundColor: requirementColor }}>
+              <div className="metric-box transmissibility-metric" >
                 <div className="metric-label">Transmissibility</div>
                 <div className="metric-value">{transmissibility}</div>
                 <div className="metric-unit">%</div>
                 <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
-                  {requirementStatus} ({'<'} 50% required)
+                  {requirementStatus} ({'<'}50% required)
                 </div>
               </div>
 
