@@ -18,6 +18,8 @@ import Waste_detection from './components/Waste_Detection'
 import UV from './components/UV'
 import Vibration_Isolation from './components/Vibratio_Isolation'
 import Vibratio_Isolation11 from './components/Vibratio_Isolation11'
+import WirelessCharging from './components/WirelessCharging'
+import Exo_sceleton from './components/Exo_sceleton'
 function App() {
   const [count, setCount] = useState(0)
 
@@ -41,6 +43,8 @@ function App() {
       {/* <UV/> */}
       <Vibration_Isolation />
       {/* <Vibratio_Isolation11 /> */}
+      {/* <Exo_sceleton/> */}
+      {/* <WirelessCharging/> */}
     </>
   )
 }
